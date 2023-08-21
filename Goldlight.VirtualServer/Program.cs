@@ -1,13 +1,34 @@
 using System.Text.Json;
+using Asp.Versioning;
+using Asp.Versioning.Builder;
+using Goldlight.Database;
+using Goldlight.Database.DatabaseOperations;
+using Goldlight.Database.Models.v1;
+using Goldlight.VirtualServer.Models.v1;
+using LocalStack.Client.Extensions;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddLocalStack(builder.Configuration);
+builder.Services.AddDefaultAWSOptions(builder.Configuration.GetAWSOptions());
+
+builder.Services.AddData();
+
+ApiVersion version1 = new(1, 0);
+builder.Services.AddApiVersioning(options =>
+{
+  options.ReportApiVersions = true;
+  options.DefaultApiVersion = version1;
+  options.ApiVersionReader = new MediaTypeApiVersionReader();
+});
+
 var app = builder.Build();
+
+ApiVersionSet organizations = app.NewApiVersionSet("Organizations").Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -18,27 +39,28 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+app.MapPost("/api/organization", async (OrganizationDataAccess oda, [FromBody] Organization organization) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+  OrganizationTable organizationTable = new()
+  {
+    Id = organization.Id.ToString(),
+    Name = organization.Name,
+    ModelVersion = 1
+  };
+  await oda.SaveOrganizationAsync(organizationTable);
 
-app.MapGet("/weatherforecast", () =>
+  return TypedResults.Created($"/api/organizations/{organization.Id}", organization);
+}).WithApiVersionSet(organizations).HasApiVersion(version1);
+
+app.Use(async (context, next) =>
 {
-  var forecast = Enumerable.Range(1, 5).Select(index =>
-      new WeatherForecast
-      (
-          DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-          Random.Shared.Next(-20, 55),
-          summaries[Random.Shared.Next(summaries.Length)]
-      ))
-      .ToArray();
-  return forecast;
-})
-.WithName("GetWeatherForecast")
-.WithOpenApi();
-
-app.Run(async context => { await WriteResponse(context,"Hello ServiceVirtualization"); });
+  if (context.Request.Path.Value!.StartsWith("/api/"))
+  {
+    await next.Invoke();
+    return;
+  }
+  await WriteResponse(context, "Hello ServiceVirtualization");
+});
 
 app.Run();
 
@@ -50,7 +72,3 @@ static async Task WriteResponse<T>(HttpContext context, T result, int statusCode
   await response.WriteAsync(JsonSerializer.Serialize(result));
 }
 
-internal record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-  public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

@@ -7,8 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+		<PackageReference Include="Asp.Versioning.Http" Version="7.0.1" />
+		<PackageReference Include="LocalStack.Client" Version="1.4.0" />
+    <PackageReference Include="LocalStack.Client.Extensions" Version="1.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.9" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Goldlight.Database\Goldlight.Database.csproj" />
   </ItemGroup>
 
 </Project>
