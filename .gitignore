@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+*.tfplan
+*.tfstate
+*.tfstate.backup
+
 # User-specific files
 *.rsuser
 *.suo
@@ -361,3 +365,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Terraform/.terraform/providers/registry.terraform.io/hashicorp/aws/5.12.0/windows_386
