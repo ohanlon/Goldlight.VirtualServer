@@ -5,7 +5,18 @@ VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Goldlight.VirtualServer", "Goldlight.VirtualServer\Goldlight.VirtualServer.csproj", "{A1A08039-D80F-454C-8A95-C85A38103E67}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Goldlight.Database", "Goldlight.Database\Goldlight.Database.csproj", "{44D23B98-1199-4731-AD4B-228241CE351F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Goldlight.Database", "Goldlight.Database\Goldlight.Database.csproj", "{44D23B98-1199-4731-AD4B-228241CE351F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Git", "Git", "{05BC446B-C3FF-4ECE-914F-6FED57629253}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Terraform", "Terraform", "{AFCA0555-0C6C-4E71-9919-77FB835E218D}"
+	ProjectSection(SolutionItems) = preProject
+		Terraform\applyterraform.cmd = Terraform\applyterraform.cmd
+		Terraform\main.tf = Terraform\main.tf
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

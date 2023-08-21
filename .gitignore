@@ -6,6 +6,7 @@
 *.tfplan
 *.tfstate
 *.tfstate.backup
+*.lock.hcl
 
 # User-specific files
 *.rsuser
