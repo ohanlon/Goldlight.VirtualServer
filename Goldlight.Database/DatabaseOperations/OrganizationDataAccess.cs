@@ -15,4 +15,9 @@ public class OrganizationDataAccess
   {
     await _dynamoDbContext.SaveAsync(organization);
   }
+
+  public virtual async Task<IEnumerable<OrganizationTable>> GetOrganizationsAsync()
+  {
+    return await _dynamoDbContext.ScanAsync<OrganizationTable>(new List<ScanCondition>()).GetRemainingAsync();
+  }
 }

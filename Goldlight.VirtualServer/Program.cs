@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
@@ -50,6 +51,13 @@ app.MapPost("/api/organization", async (OrganizationDataAccess oda, [FromBody] O
   await oda.SaveOrganizationAsync(organizationTable);
 
   return TypedResults.Created($"/api/organizations/{organization.Id}", organization);
+}).WithApiVersionSet(organizations).HasApiVersion(version1);
+
+app.MapGet("/api/organizations", async (OrganizationDataAccess oda) =>
+{
+  IEnumerable<OrganizationTable> allOrganizations = await oda.GetOrganizationsAsync();
+  return allOrganizations
+    .Select(organization => new Organization { Id = Guid.Parse(organization.Id!), Name = organization.Name });
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
 app.Use(async (context, next) =>
