@@ -5,12 +5,23 @@ namespace Goldlight.Database.Models.v1;
 [DynamoDBTable("organizations")]
 public class OrganizationTable
 {
-  [DynamoDBHashKey("id")] 
-  public string? Id { get; set; }
+  [DynamoDBHashKey("id")] public string Id { get; set; } = "";
+
+  //[DynamoDBProperty]
+  //[DynamoDBGlobalSecondaryIndexHashKey("friendlyName-index")]
+  //public string FriendlyName { get; set; } = "";
   [DynamoDBProperty] 
-  public string? Name { get; set; }
+  public string Name { get; set; } = "";
   [DynamoDBProperty] 
   public int ModelVersion { get; set; } = 1;
   [DynamoDBVersion] 
   public long? Version { get; set; }
+
+  [DynamoDBProperty] public string? ApiKey { get; set; } = "";
+}
+
+public class OrganizationPayload
+{
+  public string? ApiKey { get; set; }
+  public string? FriendlyName { get; set; }
 }

@@ -21,13 +21,13 @@ public class OrganizationDataAccess
     return await _dynamoDbContext.ScanAsync<OrganizationTable>(new List<ScanCondition>()).GetRemainingAsync();
   }
 
-  public virtual async Task<OrganizationTable?> GetOrganizationAsync(Guid id)
+  public virtual async Task<OrganizationTable?> GetOrganizationAsync(string id)
   {
-    return await _dynamoDbContext.LoadAsync<OrganizationTable>(id.ToString());
+    return await _dynamoDbContext.LoadAsync<OrganizationTable>(id);
   }
 
-  public virtual async Task DeleteOrganizationAsync(Guid id)
+  public virtual async Task DeleteOrganizationAsync(string id)
   {
-    await _dynamoDbContext.DeleteAsync<OrganizationTable>(id.ToString());
+    await _dynamoDbContext.DeleteAsync<OrganizationTable>(id);
   }
 }
