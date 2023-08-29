@@ -7,7 +7,7 @@ namespace Goldlight.VirtualServer.Models.v1;
 public class Organization
 { 
   [DataMember(Name="id")]
-  public Guid? Id { get; set; }
+  public string? Id { get; set; }
 
   [DataMember(Name="name")]
   public string? Name { get; set; }
@@ -15,21 +15,12 @@ public class Organization
   [DataMember(Name="version")]
   public long? Version { get; set; }
 
-  public static Organization FromTable(OrganizationTable table)
-  {
-    return new()
-    {
-      Id = Guid.Parse(table.Id!),
-      Name = table.Name,
-      Version = table.Version ?? 0
-    };
-  }
 
-  public OrganizationTable ToTable(int modelVersion = 1) {
-    return new()
+  public virtual OrganizationTable ToTable(int modelVersion = 1) {
+    return new OrganizationTable
     {
-      Id = Id.ToString(),
-      Name = Name,
+      Id = Id!,
+      Name = Name!,
       Version = Version,
       ModelVersion = modelVersion
     };

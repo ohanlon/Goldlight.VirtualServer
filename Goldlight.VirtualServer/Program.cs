@@ -1,4 +1,6 @@
+using System.Text;
 using System.Text.Json;
+using Amazon.Auth.AccessControlPolicy;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Goldlight.Database;
@@ -39,28 +41,32 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapPost("/api/organization", async (OrganizationDataAccess oda, Organization organization) =>
+app.MapPost("/api/organization", async (OrganizationDataAccess dataAccess, Organization organization) =>
 {
-  await oda.SaveOrganizationAsync(organization.ToTable());
-
-  return TypedResults.Created($"/api/organization/{organization.Id}", organization);
+  OrganizationResponse organizationResponse = new(organization)
+  {
+    ApiKey = Guid.NewGuid().ToString().Replace("-", "")
+  };
+  await dataAccess.SaveOrganizationAsync(organizationResponse.ToTable());
+  organizationResponse.Version = 0;
+  return TypedResults.Created($"/api/organization/{organization.Id}", organizationResponse);
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
-app.MapGet("/api/organization/{id}", async Task<Results<Ok<Organization>, NotFound>> (OrganizationDataAccess oda, Guid id) =>
+app.MapGet("/api/organization/{id}", async Task<Results<Ok<OrganizationResponse>, NotFound>> (OrganizationDataAccess oda, string id) =>
 {
   OrganizationTable? organization = await oda.GetOrganizationAsync(id);
   if (organization is null)
   {
     return TypedResults.NotFound();
   }
-  return TypedResults.Ok(Organization.FromTable(organization));
+  return TypedResults.Ok(OrganizationResponse.FromTable(organization));
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
 app.MapGet("/api/organizations", async (OrganizationDataAccess oda) =>
 {
   IEnumerable<OrganizationTable> allOrganizations = await oda.GetOrganizationsAsync();
   return allOrganizations
-    .Select(Organization.FromTable);
+    .Select(OrganizationResponse.FromTable);
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
 app.MapPut("/api/organization", async (OrganizationDataAccess oda, Organization organization) =>
@@ -69,11 +75,15 @@ app.MapPut("/api/organization", async (OrganizationDataAccess oda, Organization 
   return TypedResults.Ok();
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
-app.MapDelete("/api/organization/{id}", async (OrganizationDataAccess oda, Guid id) =>
+app.MapDelete("/api/organization/{id}", async (OrganizationDataAccess oda, string id) =>
 {
   await oda.DeleteOrganizationAsync(id);
   return TypedResults.Ok();
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
+
+app.MapGet("/api/friendlyname/{organization}",
+  (string organization) => TypedResults.Ok(string.Join("",
+    organization.ToLowerInvariant().Split(default(string[]), StringSplitOptions.RemoveEmptyEntries))));
 
 app.Use(async (context, next) =>
 {
