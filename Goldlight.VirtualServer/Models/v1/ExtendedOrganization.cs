@@ -4,10 +4,10 @@ using Goldlight.Database.Models.v1;
 namespace Goldlight.VirtualServer.Models.v1;
 
 [DataContract]
-public class OrganizationResponse : Organization
+public class ExtendedOrganization : Organization
 {
-  public OrganizationResponse() { }
-  public OrganizationResponse(Organization organization)
+  public ExtendedOrganization() { }
+  public ExtendedOrganization(Organization organization)
   {
     Id = organization.Id;
     Name = organization.Name;
@@ -24,7 +24,7 @@ public class OrganizationResponse : Organization
     return table;
   }
 
-  public static OrganizationResponse FromTable(OrganizationTable table)
+  public static ExtendedOrganization FromTable(OrganizationTable table)
   {
     return new()
     {
