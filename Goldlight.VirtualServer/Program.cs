@@ -25,7 +25,21 @@ builder.Services.AddApiVersioning(options =>
 {
   options.ReportApiVersions = true;
   options.DefaultApiVersion = version1;
-  options.ApiVersionReader = new MediaTypeApiVersionReader();
+  options.ApiVersionReader = ApiVersionReader.Combine(
+    new MediaTypeApiVersionReader(),
+    new HeaderApiVersionReader("x-api-version"));
+});
+
+builder.Services.AddCors(options =>
+{
+  options.AddPolicy("AllAllowed",
+    policy =>
+    {
+      policy
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader();
+    });
 });
 
 var app = builder.Build();
@@ -40,33 +54,33 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("AllAllowed");
 app.MapPost("/api/organization", async (OrganizationDataAccess dataAccess, Organization organization) =>
 {
-  OrganizationResponse organizationResponse = new(organization)
+  ExtendedOrganization extendedOrganization = new(organization)
   {
     ApiKey = Guid.NewGuid().ToString().Replace("-", "")
   };
-  await dataAccess.SaveOrganizationAsync(organizationResponse.ToTable());
-  organizationResponse.Version = 0;
-  return TypedResults.Created($"/api/organization/{organization.Id}", organizationResponse);
+  await dataAccess.SaveOrganizationAsync(extendedOrganization.ToTable());
+  extendedOrganization.Version = 0;
+  return TypedResults.Created($"/api/organization/{organization.Id}", extendedOrganization);
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
-app.MapGet("/api/organization/{id}", async Task<Results<Ok<OrganizationResponse>, NotFound>> (OrganizationDataAccess oda, string id) =>
+app.MapGet("/api/organization/{id}", async Task<Results<Ok<ExtendedOrganization>, NotFound>> (OrganizationDataAccess oda, string id) =>
 {
   OrganizationTable? organization = await oda.GetOrganizationAsync(id);
   if (organization is null)
   {
     return TypedResults.NotFound();
   }
-  return TypedResults.Ok(OrganizationResponse.FromTable(organization));
+  return TypedResults.Ok(ExtendedOrganization.FromTable(organization));
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
 app.MapGet("/api/organizations", async (OrganizationDataAccess oda) =>
 {
   IEnumerable<OrganizationTable> allOrganizations = await oda.GetOrganizationsAsync();
   return allOrganizations
-    .Select(OrganizationResponse.FromTable);
+    .Select(ExtendedOrganization.FromTable);
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
 app.MapPut("/api/organization", async (OrganizationDataAccess oda, Organization organization) =>
