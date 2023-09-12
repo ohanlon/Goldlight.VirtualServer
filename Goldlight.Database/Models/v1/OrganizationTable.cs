@@ -5,11 +5,9 @@ namespace Goldlight.Database.Models.v1;
 [DynamoDBTable("organizations")]
 public class OrganizationTable
 {
-  [DynamoDBHashKey("id")] public string Id { get; set; } = "";
+  [DynamoDBHashKey("id")] 
+  public string Id { get; set; } = "";
 
-  //[DynamoDBProperty]
-  //[DynamoDBGlobalSecondaryIndexHashKey("friendlyName-index")]
-  //public string FriendlyName { get; set; } = "";
   [DynamoDBProperty] 
   public string Name { get; set; } = "";
   [DynamoDBProperty] 

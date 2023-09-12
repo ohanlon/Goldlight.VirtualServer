@@ -1,3 +1,4 @@
+using System.Net;
 using System.Runtime.Serialization;
 using Goldlight.Database.Models.v1;
 
@@ -9,7 +10,7 @@ public class ExtendedOrganization : Organization
   public ExtendedOrganization() { }
   public ExtendedOrganization(Organization organization)
   {
-    Id = organization.Id;
+    Id = WebUtility.UrlEncode(organization.Id);
     Name = organization.Name;
     Version = organization.Version;
   }

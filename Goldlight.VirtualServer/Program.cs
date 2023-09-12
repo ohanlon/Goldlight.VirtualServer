@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Web;
 using Amazon.Auth.AccessControlPolicy;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
@@ -94,10 +95,6 @@ app.MapDelete("/api/organization/{id}", async (OrganizationDataAccess oda, strin
   await oda.DeleteOrganizationAsync(id);
   return TypedResults.Ok();
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
-
-app.MapGet("/api/friendlyname/{organization}",
-  (string organization) => TypedResults.Ok(string.Join("",
-    organization.ToLowerInvariant().Split(default(string[]), StringSplitOptions.RemoveEmptyEntries))));
 
 app.Use(async (context, next) =>
 {

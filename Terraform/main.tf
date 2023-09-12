@@ -22,3 +22,28 @@ resource "aws_dynamodb_table" "organizations" {
     type = "S"
   }
 }
+
+resource "aws_dynamodb_table" "projects" {
+	name           = "projects"
+	read_capacity  = 20
+	write_capacity = 20
+	hash_key       = "id"
+  range_key      = "organization_id"
+
+	attribute {
+		name = "id"
+		type = "S"
+	}
+
+  attribute {
+    name = "organization_id"
+    type = "S"
+  }
+
+  local_secondary_index {
+    name           = "organization_id-index"
+    range_key       = "organization_id"
+    projection_type = "ALL"
+    non_key_attributes = []
+  }
+}
