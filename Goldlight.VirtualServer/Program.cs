@@ -46,6 +46,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 ApiVersionSet organizations = app.NewApiVersionSet("Organizations").Build();
+ApiVersionSet projects = app.NewApiVersionSet("Projects").Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -56,6 +57,24 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllAllowed");
+
+app.MapPost("/api/project", async (ProjectDataAccess dataAccess, Project project) =>
+{
+  ExtendedProject extendedProject = new(project)
+  {
+    Id = Guid.NewGuid()
+  };
+  await dataAccess.SaveProjectAsync(extendedProject.ToTable());
+  extendedProject.Version = 0;
+  return TypedResults.Created($"/api/organization/{extendedProject.Id}", extendedProject);
+}).WithApiVersionSet(projects).HasApiVersion(version1);
+
+app.MapGet("/api/{organization}/projects/", async (ProjectDataAccess dataAccess, string organization) =>
+{
+  IEnumerable<ProjectTable> allProjects = await dataAccess.GetProjectsAsync(organization);
+  return allProjects.Select(ExtendedProject.FromTable);
+}).WithApiVersionSet(projects).HasApiVersion(version1);
+
 app.MapPost("/api/organization", async (OrganizationDataAccess dataAccess, Organization organization) =>
 {
   ExtendedOrganization extendedOrganization = new(organization)

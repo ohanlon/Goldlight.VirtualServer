@@ -32,7 +32,7 @@ public class ExtendedOrganization : Organization
       Id = table.Id,
       Name = table.Name,
       ApiKey = table.ApiKey,
-      Version = table.Version ?? 0
+      Version = table.Version ?? 0,
     };
   }
 }

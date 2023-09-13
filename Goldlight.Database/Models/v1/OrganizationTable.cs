@@ -17,9 +17,3 @@ public class OrganizationTable
 
   [DynamoDBProperty] public string? ApiKey { get; set; } = "";
 }
-
-public class OrganizationPayload
-{
-  public string? ApiKey { get; set; }
-  public string? FriendlyName { get; set; }
-}
