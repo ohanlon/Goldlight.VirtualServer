@@ -1,5 +1,4 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
-using Amazon.DynamoDBv2.DocumentModel;
 using Goldlight.Database.Models.v1;
 
 namespace Goldlight.Database.DatabaseOperations;

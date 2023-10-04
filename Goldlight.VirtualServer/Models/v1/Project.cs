@@ -1,19 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Net;
+﻿using Goldlight.VirtualServer.Models.v1.RequestResponse;
+using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 
 namespace Goldlight.VirtualServer.Models.v1;
 
 public class Project
 {
-  [Required]
-  public string? Name { get; set; }
-  [Required]
-  public string? FriendlyName { get; set; }
-  [Required]
-  public string? Description { get; set; }
-  [Required]
-  public string Organization { get; set; }
+  [Required, DataMember] public string? Name { get; set; }
+  [Required, DataMember] public string? FriendlyName { get; set; }
+  [Required, DataMember] public string? Description { get; set; }
+  [Required, DataMember] public string Organization { get; set; } = null!;
 
   [DataMember(Name = "version")] public long? Version { get; set; }
 }

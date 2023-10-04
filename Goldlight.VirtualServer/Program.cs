@@ -1,7 +1,4 @@
-using System.Text;
 using System.Text.Json;
-using System.Web;
-using Amazon.Auth.AccessControlPolicy;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Goldlight.Database;
@@ -48,7 +45,6 @@ var app = builder.Build();
 ApiVersionSet organizations = app.NewApiVersionSet("Organizations").Build();
 ApiVersionSet projects = app.NewApiVersionSet("Projects").Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
   app.UseSwagger();
@@ -67,6 +63,12 @@ app.MapPost("/api/project", async (ProjectDataAccess dataAccess, Project project
   await dataAccess.SaveProjectAsync(extendedProject.ToTable());
   extendedProject.Version = 0;
   return TypedResults.Created($"/api/organization/{extendedProject.Id}", extendedProject);
+}).WithApiVersionSet(projects).HasApiVersion(version1);
+
+app.MapPut("/api/project", async (ProjectDataAccess dataAccess, ExtendedProject project) =>
+{
+  await dataAccess.SaveProjectAsync(project.ToTable());
+  return TypedResults.Ok();
 }).WithApiVersionSet(projects).HasApiVersion(version1);
 
 app.MapGet("/api/{organization}/projects/", async (ProjectDataAccess dataAccess, string organization) =>

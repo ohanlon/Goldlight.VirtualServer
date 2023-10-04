@@ -1,4 +1,5 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
+using Goldlight.Database.Models.v1.RequestResponse;
 
 namespace Goldlight.Database.Models.v1;
 
