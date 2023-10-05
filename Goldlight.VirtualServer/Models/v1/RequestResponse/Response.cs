@@ -6,10 +6,10 @@ namespace Goldlight.VirtualServer.Models.v1.RequestResponse;
 [DataContract]
 public class Response
 {
-  [Required, DataMember(Name = "summary")] public HttpResponseSummary? Summary { get; set; }
-  [DataMember(Name="headers")]
-  public HttpHeader[]? Headers { get; set; }
+  [Required, DataMember(Name = "summary")]
+  public HttpResponseSummary Summary { get; set; } = null!;
 
-  [DataMember(Name="content")]
-  public string? Content { get; set; }
+  [DataMember(Name = "headers")] public HttpHeader[]? Headers { get; set; }
+
+  [DataMember(Name = "content")] public string? Content { get; set; }
 }

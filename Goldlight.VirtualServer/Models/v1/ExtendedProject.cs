@@ -34,34 +34,34 @@ public class ExtendedProject : Project
       HttpHeaderTableFragment[]? requestHeaders = null;
       if (requestResponse.Request.Headers is not null)
       {
-        requestResponse.Request.Headers.Select(requestHeader => new HttpHeaderTableFragment { Name = requestHeader.Name, Value = requestHeader.Value }).ToArray();
+        requestHeaders = requestResponse.Request.Headers.Select(requestHeader => new HttpHeaderTableFragment { Name = requestHeader.Name, Value = requestHeader.Value }).ToArray();
       }
       HttpHeaderTableFragment[]? responseHeaders = null;
       if (requestResponse.Response.Headers is not null)
       {
-        requestResponse.Response.Headers.Select(responseHeader => new HttpHeaderTableFragment
+        responseHeaders = requestResponse.Response.Headers.Select(responseHeader => new HttpHeaderTableFragment
           { Name = responseHeader.Name, Value = responseHeader.Value }).ToArray();
       }
 
-      RequestResponsePairTableFragment fragment = new RequestResponsePairTableFragment
+      RequestResponsePairTableFragment fragment = new()
       {
         Description = requestResponse.Description,
         Name = requestResponse.Name,
-        Response = new()
+        Response = new ResponseTableFragment
         {
           Content = requestResponse.Response.Content,
           Headers = responseHeaders,
-          Summary = new()
+          Summary = new HttpResponseSummaryTableFragment
           {
             Status = requestResponse.Response.Summary.Status,
             Version = requestResponse.Response.Summary.Version
           }
         },
-        Request = new()
+        Request = new RequestTableFragment
         {
           Content = requestResponse.Request.Content,
           Headers = requestHeaders,
-          Summary = new()
+          Summary = new Summary
           {
             Version = requestResponse.Request.Summary.Version,
             Method = requestResponse.Request.Summary.Method,
@@ -75,7 +75,7 @@ public class ExtendedProject : Project
     {
       Id = Id.ToString(),
       OrganizationId = Organization,
-      Details = new()
+      Details = new Details
       {
         Description = Description,
         FriendlyName = FriendlyName,
@@ -93,7 +93,7 @@ public class ExtendedProject : Project
 
   public static ExtendedProject FromTable(ProjectTable table)
   {
-    ExtendedProject project = new ExtendedProject
+    ExtendedProject project = new()
     {
       Id = Guid.Parse(table.Id),
       Organization = table.OrganizationId,
@@ -103,19 +103,19 @@ public class ExtendedProject : Project
       Version = table.Version
     };
     if (table.Details.RequestResponsePairs == null) return project;
-    var requestResponses = new List<RequestResponsePair>();
+    List<RequestResponsePair> requestResponses = new();
     
     foreach (var detailsRequestResponsePair in table.Details.RequestResponsePairs)
     {
       RequestResponsePair rrPair = new();
-      List<HttpHeader> requestHeaders = new List<HttpHeader>();
+      List<HttpHeader> requestHeaders = new();
       if (detailsRequestResponsePair.Request.Headers is not null)
       {
         requestHeaders.AddRange(detailsRequestResponsePair.Request.Headers.Select(header =>
           new HttpHeader { Name = header.Name, Value = header.Value }));
       }
 
-      List<HttpHeader> responseHeaders = new List<HttpHeader>();
+      List<HttpHeader> responseHeaders = new();
       if (detailsRequestResponsePair.Response.Headers is not null)
       {
         responseHeaders.AddRange(detailsRequestResponsePair.Response.Headers.Select(header =>
@@ -124,20 +124,20 @@ public class ExtendedProject : Project
 
       rrPair.Description = detailsRequestResponsePair.Description;
       rrPair.Name = detailsRequestResponsePair.Name;
-      rrPair.Request = new()
+      rrPair.Request = new Request
       {
         Content = detailsRequestResponsePair.Request.Content,
         Headers = requestHeaders.ToArray(),
-        Summary = new()
+        Summary = new HttpRequestSummary
         {
           Version = detailsRequestResponsePair.Request.Summary.Version,
           Method = detailsRequestResponsePair.Request.Summary.Method,
           Path = detailsRequestResponsePair.Request.Summary.Path
         }
       };
-      rrPair.Response = new()
+      rrPair.Response = new Response
       {
-        Summary = new()
+        Summary = new HttpResponseSummary
         {
           Status = detailsRequestResponsePair.Response.Summary.Status,
           Version = detailsRequestResponsePair.Response.Summary.Version

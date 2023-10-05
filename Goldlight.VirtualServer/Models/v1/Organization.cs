@@ -17,7 +17,7 @@ public class Organization
 
 
   public virtual OrganizationTable ToTable(int modelVersion = 1) {
-    return new OrganizationTable
+    return new()
     {
       Id = Id!,
       Name = Name!,

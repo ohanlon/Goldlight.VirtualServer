@@ -18,7 +18,7 @@ public class ProjectDataAccess
 
   public virtual async Task<IEnumerable<ProjectTable>> GetProjectsAsync(string organization)
   {
-    DynamoDBOperationConfig queryOperationConfig = new DynamoDBOperationConfig
+    DynamoDBOperationConfig queryOperationConfig = new()
     {
       IndexName = "project-organization_id-index"
     };
