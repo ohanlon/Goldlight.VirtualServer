@@ -4,8 +4,8 @@ namespace Goldlight.Database.Models.v1.RequestResponse;
 
 public class RequestResponsePairTableFragment
 {
-  [DynamoDBProperty] public string? Name { get; set; }
-  [DynamoDBProperty] public string? Description { get; set; }
-  [DynamoDBProperty] public RequestTableFragment Request = new();
-  [DynamoDBProperty] public ResponseTableFragment Response = new();
+  [DynamoDBProperty] public string Name { get; set; } = null!;
+  [DynamoDBProperty] public string Description { get; set; } = null!;
+  [DynamoDBProperty] public RequestTableFragment Request { get; set; } = null!;
+  [DynamoDBProperty] public ResponseTableFragment Response { get; set; } = null!;
 }

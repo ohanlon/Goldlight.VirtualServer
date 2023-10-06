@@ -4,6 +4,7 @@ using Asp.Versioning.Builder;
 using Goldlight.Database;
 using Goldlight.Database.DatabaseOperations;
 using Goldlight.Database.Models.v1;
+using Goldlight.VirtualServer.Models;
 using Goldlight.VirtualServer.Models.v1;
 using LocalStack.Client.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -68,7 +69,8 @@ app.MapPost("/api/project", async (ProjectDataAccess dataAccess, Project project
 app.MapPut("/api/project", async (ProjectDataAccess dataAccess, ExtendedProject project) =>
 {
   await dataAccess.SaveProjectAsync(project.ToTable());
-  return TypedResults.Ok();
+  project.Version++;
+  return TypedResults.Ok(project);
 }).WithApiVersionSet(projects).HasApiVersion(version1);
 
 app.MapGet("/api/{organization}/projects/", async (ProjectDataAccess dataAccess, string organization) =>
@@ -98,22 +100,23 @@ app.MapGet("/api/organization/{id}", async Task<Results<Ok<ExtendedOrganization>
   return TypedResults.Ok(ExtendedOrganization.FromTable(organization));
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
-app.MapGet("/api/organizations", async (OrganizationDataAccess oda) =>
+app.MapGet("/api/organizations", async (OrganizationDataAccess dataAccess) =>
 {
-  IEnumerable<OrganizationTable> allOrganizations = await oda.GetOrganizationsAsync();
+  IEnumerable<OrganizationTable> allOrganizations = await dataAccess.GetOrganizationsAsync();
   return allOrganizations
     .Select(ExtendedOrganization.FromTable);
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
-app.MapPut("/api/organization", async (OrganizationDataAccess oda, Organization organization) =>
+app.MapPut("/api/organization", async (OrganizationDataAccess dataAccess, Organization organization) =>
 {
-  await oda.SaveOrganizationAsync(organization.ToTable());
-  return TypedResults.Ok();
+  await dataAccess.SaveOrganizationAsync(organization.ToTable());
+  organization.Version++;
+  return TypedResults.Ok(organization);
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
-app.MapDelete("/api/organization/{id}", async (OrganizationDataAccess oda, string id) =>
+app.MapDelete("/api/organization/{id}", async (OrganizationDataAccess dataAccess, string id) =>
 {
-  await oda.DeleteOrganizationAsync(id);
+  await dataAccess.DeleteOrganizationAsync(id);
   return TypedResults.Ok();
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
