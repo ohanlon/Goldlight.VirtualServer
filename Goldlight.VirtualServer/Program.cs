@@ -6,6 +6,7 @@ using Goldlight.Database.DatabaseOperations;
 using Goldlight.Database.Models.v1;
 using Goldlight.VirtualServer.Models;
 using Goldlight.VirtualServer.Models.v1;
+using Goldlight.VirtualServer.VirtualRequest;
 using LocalStack.Client.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -54,6 +55,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllAllowed");
+
+app.UseMiddleware<VirtualRequestHandler>();
 
 app.MapPost("/api/project", async (ProjectDataAccess dataAccess, Project project) =>
 {
@@ -120,23 +123,4 @@ app.MapDelete("/api/organization/{id}", async (OrganizationDataAccess dataAccess
   return TypedResults.Ok();
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
-app.Use(async (context, next) =>
-{
-  if (context.Request.Path.Value!.StartsWith("/api/"))
-  {
-    await next.Invoke();
-    return;
-  }
-  await WriteResponse(context, "Hello ServiceVirtualization");
-});
-
 app.Run();
-
-static async Task WriteResponse<T>(HttpContext context, T result, int statusCode = 200, string contentType = "application/json")
-{
-  HttpResponse response = context.Response;
-  response.StatusCode = statusCode;
-  response.ContentType = contentType;
-  await response.WriteAsync(JsonSerializer.Serialize(result));
-}
-
