@@ -27,13 +27,21 @@ public class VirtualRequestHandler
       return;
     }
 
-    string[] apiDetails = context.Request.Path.Value.Split("/", StringSplitOptions.RemoveEmptyEntries);
+    string searchPath = context.Request.Path.Value + context.Request.QueryString;
+    string[] apiDetails = searchPath.Split("/", StringSplitOptions.RemoveEmptyEntries);
     // We know that the first part is the organisation...
     var organizationDetails = await organization.GetOrganizationAsync(apiDetails[0]);
     HttpResponse response = context.Response;
     if (organizationDetails is null)
     {
       response.StatusCode = (int)HttpStatusCode.NotFound;
+      return;
+    }
+
+    string? apiKey = context.Request.Headers["x-goldlight-api-key"];
+    if (string.IsNullOrWhiteSpace(apiKey) || apiKey != organizationDetails.ApiKey)
+    {
+      response.StatusCode = (int)StatusCodes.Status403Forbidden;
       return;
     }
     // This is where we would match the API Key passed in with the organization
@@ -46,7 +54,7 @@ public class VirtualRequestHandler
       item.Details.RequestResponsePairs is not null);
     if (projectItem is null) return;
     int length = $"/{apiDetails[0]}/{apiDetails[1]}".Length;
-    string actualApi = context.Request.Path.Value.Substring(length);
+    string actualApi = searchPath.Substring(length);
     await FindRequestResponsePairs(context, projectItem.Details.RequestResponsePairs!.Where(x => x.Request.Summary.Path.Equals(actualApi, StringComparison.InvariantCultureIgnoreCase)).ToList());
   }
 
@@ -56,7 +64,7 @@ public class VirtualRequestHandler
     var possibles = rrpairs.FindAll(x => x.Request.Summary.Method == context.Request.Method);
     if (!possibles.Any())
     {
-      await WriteResponse(context, $"** Service Virtualization Warning ** {context.Request.Path.Value} could not be found", 404);
+      await WriteResponse(context, $"** Service Virtualization Warning ** {context.Request.Path.Value + context.Request.QueryString} could not be found", 404);
       return;
     }
 
@@ -110,13 +118,10 @@ public class VirtualRequestHandler
     }
   }
 
-  public static async Task<string> GetRawBodyAsync(HttpRequest request, Encoding encoding = null)
+  public static async Task<string> GetRawBodyAsync(HttpRequest request, Encoding? encoding = null)
   {
     if (!request.Body.CanSeek)
     {
-      // We only do this if the stream isn't *already* seekable,
-      // as EnableBuffering will create a new stream instance
-      // each time it's called
       request.EnableBuffering();
     }
 
@@ -124,7 +129,7 @@ public class VirtualRequestHandler
 
     var reader = new StreamReader(request.Body, encoding ?? Encoding.UTF8);
 
-    var body = await reader.ReadToEndAsync().ConfigureAwait(false);
+    var body = await reader.ReadToEndAsync();//.ConfigureAwait(false);
 
     request.Body.Position = 0;
 
