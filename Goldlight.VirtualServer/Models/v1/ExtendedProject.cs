@@ -72,6 +72,7 @@ public class ExtendedProject : Project
       };
       rrPair.Response = new Response
       {
+        Content = detailsRequestResponsePair.Response.Content,
         Summary = new HttpResponseSummary
         {
           Status = detailsRequestResponsePair.Response.Summary.Status,
