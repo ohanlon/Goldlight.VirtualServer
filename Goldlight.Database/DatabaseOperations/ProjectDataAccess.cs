@@ -31,4 +31,9 @@ public class ProjectDataAccess
     }
     return projects;
   }
+
+  public virtual async Task DeleteProjectAsync(string id)
+  {
+    await dynamoDbContext.DeleteAsync<ProjectTable>(id);
+  }
 }

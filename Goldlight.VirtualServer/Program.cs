@@ -82,6 +82,12 @@ app.MapGet("/api/{organization}/projects/", async (ProjectDataAccess dataAccess,
   return allProjects.Select(ExtendedProject.FromTable);
 }).WithApiVersionSet(projects).HasApiVersion(version1);
 
+app.MapDelete("/api/project/{id}", async (ProjectDataAccess dataAccess, string id) =>
+{
+  await dataAccess.DeleteProjectAsync(id);
+  return TypedResults.Ok(id);
+}).WithApiVersionSet(projects).HasApiVersion(version1);
+
 app.MapPost("/api/organization", async (OrganizationDataAccess dataAccess, Organization organization) =>
 {
   ExtendedOrganization extendedOrganization = new(organization)
@@ -120,7 +126,7 @@ app.MapPut("/api/organization", async (OrganizationDataAccess dataAccess, Organi
 app.MapDelete("/api/organization/{id}", async (OrganizationDataAccess dataAccess, string id) =>
 {
   await dataAccess.DeleteOrganizationAsync(id);
-  return TypedResults.Ok();
+  return TypedResults.Ok(id);
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
 app.Run();

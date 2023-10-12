@@ -9,18 +9,47 @@ public static class ModelExtensions
   public static ProjectTable ToTable(this ExtendedProject project, int modelVersion = 1)
   {
     List<RequestResponsePairTableFragment> rrPairs = new();
+    if (project.RequestResponses is not null)
+    {
+      BuildRestResponsePairsForProject(project, rrPairs);
+    }
+
+    ProjectTable projectTable = new()
+    {
+      Id = project.Id.ToString(),
+      OrganizationId = project.Organization,
+      Details = new Details
+      {
+        Description = project.Description,
+        FriendlyName = project.FriendlyName,
+        Name = project.Name,
+      },
+      ModelVersion = modelVersion,
+      Version = project.Version
+    };
+    if (rrPairs.Any())
+    {
+      projectTable.Details.RequestResponsePairs = rrPairs.ToArray();
+    }
+    return projectTable;
+  }
+
+  private static void BuildRestResponsePairsForProject(ExtendedProject project, List<RequestResponsePairTableFragment> rrPairs)
+  {
     foreach (var requestResponse in project.RequestResponses)
     {
       HttpHeaderTableFragment[]? requestHeaders = null;
       if (requestResponse.Request.Headers is not null)
       {
-        requestHeaders = requestResponse.Request.Headers.Select(requestHeader => new HttpHeaderTableFragment { Name = requestHeader.Name, Value = requestHeader.Value }).ToArray();
+        requestHeaders = requestResponse.Request.Headers.Select(requestHeader => new HttpHeaderTableFragment
+          { Name = requestHeader.Name, Value = requestHeader.Value }).ToArray();
       }
+
       HttpHeaderTableFragment[]? responseHeaders = null;
       if (requestResponse.Response.Headers is not null)
       {
         responseHeaders = requestResponse.Response.Headers.Select(responseHeader => new HttpHeaderTableFragment
-        { Name = responseHeader.Name, Value = responseHeader.Value }).ToArray();
+          { Name = responseHeader.Name, Value = responseHeader.Value }).ToArray();
       }
 
       RequestResponsePairTableFragment fragment = new()
@@ -51,24 +80,6 @@ public static class ModelExtensions
       };
       rrPairs.Add(fragment);
     }
-    ProjectTable projectTable = new()
-    {
-      Id = project.Id.ToString(),
-      OrganizationId = project.Organization,
-      Details = new Details
-      {
-        Description = project.Description,
-        FriendlyName = project.FriendlyName,
-        Name = project.Name,
-      },
-      ModelVersion = modelVersion,
-      Version = project.Version
-    };
-    if (rrPairs.Any())
-    {
-      projectTable.Details.RequestResponsePairs = rrPairs.ToArray();
-    }
-    return projectTable;
   }
 
   public static OrganizationTable ToTable(this ExtendedOrganization organization, int modelVersion = 1)
