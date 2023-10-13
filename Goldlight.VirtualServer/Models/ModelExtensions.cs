@@ -63,7 +63,7 @@ public static class ModelExtensions
           Summary = new HttpResponseSummaryTableFragment
           {
             Status = requestResponse.Response.Summary.Status,
-            Version = requestResponse.Response.Summary.Version
+            Version = requestResponse.Response.Summary.Version,
           }
         },
         Request = new RequestTableFragment

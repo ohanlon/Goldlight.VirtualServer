@@ -7,5 +7,5 @@ namespace Goldlight.VirtualServer.Models.v1.RequestResponse;
 public class HttpResponseSummary
 {
   [Required, DataMember(Name="version")] public string? Version { get; set; }
-  [Required, DataMember(Name="status")] public string? Status { get; set; }
+  [Required, DataMember(Name="status")] public int? Status { get; set; }
 }

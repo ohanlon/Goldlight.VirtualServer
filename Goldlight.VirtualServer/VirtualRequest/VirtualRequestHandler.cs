@@ -94,7 +94,6 @@ public class VirtualRequestHandler
         continue;
       }
       // We have a match here. Let's write it out....
-      int.TryParse(possible.Response.Summary.Status, out int status);
       if (possible.Response.Headers is not null)
       {
         foreach (var header in possible.Response.Headers)
@@ -102,7 +101,7 @@ public class VirtualRequestHandler
           context.Response.Headers!.TryAdd(header.Name, header.Value);
         }
       }
-      await WriteResponse(context, possible.Response.Content, status);
+      await WriteResponse(context, possible.Response.Content, possible.Response.Summary.Status!.Value);
       break;
     }
   }
