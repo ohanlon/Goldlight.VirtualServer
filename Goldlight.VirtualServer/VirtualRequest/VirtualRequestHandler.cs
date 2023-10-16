@@ -29,7 +29,6 @@ public class VirtualRequestHandler
 
     string searchPath = context.Request.Path.Value + context.Request.QueryString;
     string[] apiDetails = searchPath.Split("/", StringSplitOptions.RemoveEmptyEntries);
-    // We know that the first part is the organisation...
     var organizationDetails = await organization.GetOrganizationAsync(apiDetails[0]);
     HttpResponse response = context.Response;
     if (organizationDetails is null)
@@ -52,7 +51,11 @@ public class VirtualRequestHandler
     var projectItem = projectDetailsList.Find(item =>
       item.Details.FriendlyName.ToLowerInvariant() == apiDetails[1].ToLowerInvariant() &&
       item.Details.RequestResponsePairs is not null);
-    if (projectItem is null) return;
+    if (projectItem is null)
+    {
+      await WriteResponse(context, $"** Service Virtualization Warning ** {context.Request.Path.Value + context.Request.QueryString} could not be found", 404);
+      return;
+    };
     int length = $"/{apiDetails[0]}/{apiDetails[1]}".Length;
     string actualApi = searchPath.Substring(length);
     await FindRequestResponsePairs(context, projectItem.Details.RequestResponsePairs!.Where(x => x.Request.Summary.Path.Equals(actualApi, StringComparison.InvariantCultureIgnoreCase)).ToList());
@@ -61,7 +64,7 @@ public class VirtualRequestHandler
   private async Task FindRequestResponsePairs(HttpContext context, List<RequestResponsePairTableFragment> rrpairs)
   {
     // Find the method
-    var possibles = rrpairs.FindAll(x => x.Request.Summary.Method == context.Request.Method);
+    List<RequestResponsePairTableFragment> possibles = rrpairs.FindAll(x => x.Request.Summary.Method == context.Request.Method);
     if (!possibles.Any())
     {
       await WriteResponse(context, $"** Service Virtualization Warning ** {context.Request.Path.Value + context.Request.QueryString} could not be found", 404);

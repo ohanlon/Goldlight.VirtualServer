@@ -6,5 +6,5 @@ public class Summary
 {
   [DynamoDBProperty] public string Method { get; set; } = null!;
   [DynamoDBProperty] public string Path { get; set; } = null!;
-  [DynamoDBProperty] public string? Version { get; set; }
+  [DynamoDBProperty] public string? Protocol { get; set; }
 }

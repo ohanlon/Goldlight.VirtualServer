@@ -63,7 +63,7 @@ public static class ModelExtensions
           Summary = new HttpResponseSummaryTableFragment
           {
             Status = requestResponse.Response.Summary.Status,
-            Version = requestResponse.Response.Summary.Version,
+            Protocol = requestResponse.Response.Summary.Protocol,
           }
         },
         Request = new RequestTableFragment
@@ -72,7 +72,7 @@ public static class ModelExtensions
           Headers = requestHeaders,
           Summary = new Summary
           {
-            Version = requestResponse.Request.Summary.Version,
+            Protocol = requestResponse.Request.Summary.Protocol,
             Method = requestResponse.Request.Summary.Method,
             Path = requestResponse.Request.Summary.Path
           }

@@ -65,7 +65,7 @@ public class ExtendedProject : Project
         Headers = requestHeaders.ToArray(),
         Summary = new HttpRequestSummary
         {
-          Version = detailsRequestResponsePair.Request.Summary.Version,
+          Protocol = detailsRequestResponsePair.Request.Summary.Protocol,
           Method = detailsRequestResponsePair.Request.Summary.Method,
           Path = detailsRequestResponsePair.Request.Summary.Path
         }
@@ -76,7 +76,7 @@ public class ExtendedProject : Project
         Summary = new HttpResponseSummary
         {
           Status = detailsRequestResponsePair.Response.Summary.Status,
-          Version = detailsRequestResponsePair.Response.Summary.Version
+          Protocol = detailsRequestResponsePair.Response.Summary.Protocol
         },
         Headers = responseHeaders.ToArray()
       };
