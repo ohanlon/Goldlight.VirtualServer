@@ -1,12 +1,12 @@
-using System.Text;
 using System.Text.Json;
-using Amazon.Auth.AccessControlPolicy;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
 using Goldlight.Database;
 using Goldlight.Database.DatabaseOperations;
 using Goldlight.Database.Models.v1;
+using Goldlight.VirtualServer.Models;
 using Goldlight.VirtualServer.Models.v1;
+using Goldlight.VirtualServer.VirtualRequest;
 using LocalStack.Client.Extensions;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -45,8 +45,8 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 ApiVersionSet organizations = app.NewApiVersionSet("Organizations").Build();
+ApiVersionSet projects = app.NewApiVersionSet("Projects").Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
   app.UseSwagger();
@@ -55,6 +55,39 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("AllAllowed");
+
+app.UseMiddleware<VirtualRequestHandler>();
+
+app.MapPost("/api/project", async (ProjectDataAccess dataAccess, Project project) =>
+{
+  ExtendedProject extendedProject = new(project)
+  {
+    Id = Guid.NewGuid()
+  };
+  await dataAccess.SaveProjectAsync(extendedProject.ToTable());
+  extendedProject.Version = 0;
+  return TypedResults.Created($"/api/organization/{extendedProject.Id}", extendedProject);
+}).WithApiVersionSet(projects).HasApiVersion(version1);
+
+app.MapPut("/api/project", async (ProjectDataAccess dataAccess, ExtendedProject project) =>
+{
+  await dataAccess.SaveProjectAsync(project.ToTable());
+  project.Version++;
+  return TypedResults.Ok(project);
+}).WithApiVersionSet(projects).HasApiVersion(version1);
+
+app.MapGet("/api/{organization}/projects/", async (ProjectDataAccess dataAccess, string organization) =>
+{
+  IEnumerable<ProjectTable> allProjects = await dataAccess.GetProjectsAsync(organization);
+  return allProjects.Select(ExtendedProject.FromTable);
+}).WithApiVersionSet(projects).HasApiVersion(version1);
+
+app.MapDelete("/api/project/{id}", async (ProjectDataAccess dataAccess, string id) =>
+{
+  await dataAccess.DeleteProjectAsync(id);
+  return TypedResults.Ok(id);
+}).WithApiVersionSet(projects).HasApiVersion(version1);
+
 app.MapPost("/api/organization", async (OrganizationDataAccess dataAccess, Organization organization) =>
 {
   ExtendedOrganization extendedOrganization = new(organization)
@@ -76,46 +109,24 @@ app.MapGet("/api/organization/{id}", async Task<Results<Ok<ExtendedOrganization>
   return TypedResults.Ok(ExtendedOrganization.FromTable(organization));
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
-app.MapGet("/api/organizations", async (OrganizationDataAccess oda) =>
+app.MapGet("/api/organizations", async (OrganizationDataAccess dataAccess) =>
 {
-  IEnumerable<OrganizationTable> allOrganizations = await oda.GetOrganizationsAsync();
+  IEnumerable<OrganizationTable> allOrganizations = await dataAccess.GetOrganizationsAsync();
   return allOrganizations
     .Select(ExtendedOrganization.FromTable);
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
-app.MapPut("/api/organization", async (OrganizationDataAccess oda, Organization organization) =>
+app.MapPut("/api/organization", async (OrganizationDataAccess dataAccess, Organization organization) =>
 {
-  await oda.SaveOrganizationAsync(organization.ToTable());
-  return TypedResults.Ok();
+  await dataAccess.SaveOrganizationAsync(organization.ToTable());
+  organization.Version++;
+  return TypedResults.Ok(organization);
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
 
-app.MapDelete("/api/organization/{id}", async (OrganizationDataAccess oda, string id) =>
+app.MapDelete("/api/organization/{id}", async (OrganizationDataAccess dataAccess, string id) =>
 {
-  await oda.DeleteOrganizationAsync(id);
-  return TypedResults.Ok();
+  await dataAccess.DeleteOrganizationAsync(id);
+  return TypedResults.Ok(id);
 }).WithApiVersionSet(organizations).HasApiVersion(version1);
-
-app.MapGet("/api/friendlyname/{organization}",
-  (string organization) => TypedResults.Ok(string.Join("",
-    organization.ToLowerInvariant().Split(default(string[]), StringSplitOptions.RemoveEmptyEntries))));
-
-app.Use(async (context, next) =>
-{
-  if (context.Request.Path.Value!.StartsWith("/api/"))
-  {
-    await next.Invoke();
-    return;
-  }
-  await WriteResponse(context, "Hello ServiceVirtualization");
-});
 
 app.Run();
-
-static async Task WriteResponse<T>(HttpContext context, T result, int statusCode = 200, string contentType = "application/json")
-{
-  HttpResponse response = context.Response;
-  response.StatusCode = statusCode;
-  response.ContentType = contentType;
-  await response.WriteAsync(JsonSerializer.Serialize(result));
-}
-

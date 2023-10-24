@@ -11,6 +11,7 @@ public static class DataRegistration
   public static IServiceCollection AddData(this IServiceCollection services)
   {
     return services.AddTransient<OrganizationDataAccess>().AddAwsService<IAmazonDynamoDB>()
-      .AddTransient<IDynamoDBContext, DynamoDBContext>();
+      .AddTransient<IDynamoDBContext, DynamoDBContext>()
+      .AddTransient<ProjectDataAccess>();
   }
 }
