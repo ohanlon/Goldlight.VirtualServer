@@ -31,10 +31,12 @@ public static class ModelExtensions
     {
       projectTable.Details.RequestResponsePairs = rrPairs.ToArray();
     }
+
     return projectTable;
   }
 
-  private static void BuildRestResponsePairsForProject(ExtendedProject project, List<RequestResponsePairTableFragment> rrPairs)
+  private static void BuildRestResponsePairsForProject(ExtendedProject project,
+    List<RequestResponsePairTableFragment> rrPairs)
   {
     foreach (var requestResponse in project.RequestResponses)
     {
@@ -80,29 +82,5 @@ public static class ModelExtensions
       };
       rrPairs.Add(fragment);
     }
-  }
-
-  public static OrganizationTable ToTable(this ExtendedOrganization organization, int modelVersion = 1)
-  {
-    OrganizationTable table = new()
-    {
-      Id = organization.Id!,
-      Name = organization.Name!,
-      Version = organization.Version,
-      ModelVersion = modelVersion,
-      ApiKey = organization.ApiKey
-    };
-    return table;
-  }
-
-  public static OrganizationTable ToTable(this Organization organization, int modelVersion = 1)
-  {
-    return new OrganizationTable
-    {
-      Id = organization.Id!,
-      Name = organization.Name!,
-      Version = organization.Version,
-      ModelVersion = modelVersion
-    };
   }
 }

@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -29,7 +28,7 @@ public class VirtualRequestHandler
 
     string searchPath = context.Request.Path.Value + context.Request.QueryString;
     string[] apiDetails = searchPath.Split("/", StringSplitOptions.RemoveEmptyEntries);
-    var organizationDetails = await organization.GetOrganizationAsync(apiDetails[0]);
+    var organizationDetails = await organization.GetOrganizationByNameAsync(apiDetails[0]);
     HttpResponse response = context.Response;
     if (organizationDetails is null)
     {
@@ -43,9 +42,10 @@ public class VirtualRequestHandler
       response.StatusCode = (int)StatusCodes.Status403Forbidden;
       return;
     }
+
     // This is where we would match the API Key passed in with the organization
     // using x-goldlight-api-key == organizationDetails.ApiKey
-    var projectDetails = await project.GetProjectsAsync(organizationDetails.Id);
+    var projectDetails = await project.GetProjectsAsync(organizationDetails.Name);
     var projectDetailsList = projectDetails.ToList();
 
     var projectItem = projectDetailsList.Find(item =>
@@ -53,21 +53,30 @@ public class VirtualRequestHandler
       item.Details.RequestResponsePairs is not null);
     if (projectItem is null)
     {
-      await WriteResponse(context, $"** Service Virtualization Warning ** {context.Request.Path.Value + context.Request.QueryString} could not be found", 404);
+      await WriteResponse(context,
+        $"** Service Virtualization Warning ** {context.Request.Path.Value + context.Request.QueryString} could not be found",
+        404);
       return;
-    };
+    }
+
+    ;
     int length = $"/{apiDetails[0]}/{apiDetails[1]}".Length;
     string actualApi = searchPath.Substring(length);
-    await FindRequestResponsePairs(context, projectItem.Details.RequestResponsePairs!.Where(x => x.Request.Summary.Path.Equals(actualApi, StringComparison.InvariantCultureIgnoreCase)).ToList());
+    await FindRequestResponsePairs(context,
+      projectItem.Details.RequestResponsePairs!.Where(x =>
+        x.Request.Summary.Path.Equals(actualApi, StringComparison.InvariantCultureIgnoreCase)).ToList());
   }
 
   private async Task FindRequestResponsePairs(HttpContext context, List<RequestResponsePairTableFragment> rrpairs)
   {
     // Find the method
-    List<RequestResponsePairTableFragment> possibles = rrpairs.FindAll(x => x.Request.Summary.Method == context.Request.Method);
+    List<RequestResponsePairTableFragment> possibles =
+      rrpairs.FindAll(x => x.Request.Summary.Method == context.Request.Method);
     if (!possibles.Any())
     {
-      await WriteResponse(context, $"** Service Virtualization Warning ** {context.Request.Path.Value + context.Request.QueryString} could not be found", 404);
+      await WriteResponse(context,
+        $"** Service Virtualization Warning ** {context.Request.Path.Value + context.Request.QueryString} could not be found",
+        404);
       return;
     }
 
@@ -84,11 +93,13 @@ public class VirtualRequestHandler
       {
         continue;
       }
+
       string? content = possible.Request.Content;
       if (string.IsNullOrWhiteSpace(content))
       {
         content = string.Empty;
       }
+
       content = content.Trim();
 
       string body = await GetRawBodyAsync(context.Request);
@@ -96,6 +107,7 @@ public class VirtualRequestHandler
       {
         continue;
       }
+
       // We have a match here. Let's write it out....
       if (possible.Response.Headers is not null)
       {
@@ -104,12 +116,14 @@ public class VirtualRequestHandler
           context.Response.Headers!.TryAdd(header.Name, header.Value);
         }
       }
+
       await WriteResponse(context, possible.Response.Content, possible.Response.Summary.Status!.Value);
       break;
     }
   }
 
-  static async Task WriteResponse(HttpContext context, string? result, int statusCode = 200, string contentType = "application/json")
+  static async Task WriteResponse(HttpContext context, string? result, int statusCode = 200,
+    string contentType = "application/json")
   {
     HttpResponse response = context.Response;
     response.StatusCode = statusCode;
@@ -131,7 +145,7 @@ public class VirtualRequestHandler
 
     var reader = new StreamReader(request.Body, encoding ?? Encoding.UTF8);
 
-    var body = await reader.ReadToEndAsync();//.ConfigureAwait(false);
+    var body = await reader.ReadToEndAsync(); //.ConfigureAwait(false);
 
     request.Body.Position = 0;
 

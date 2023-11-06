@@ -8,9 +8,15 @@
 
   <ItemGroup>
 	  <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.200.2" />
+	  <PackageReference Include="Dapper" Version="2.1.15" />
 	  <PackageReference Include="LocalStack.Client.Extensions" Version="1.2.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+    <PackageReference Include="Npgsql" Version="7.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Goldlight.Models\Goldlight.Models.csproj" />
   </ItemGroup>
 
 </Project>

@@ -8,6 +8,7 @@
 
   <ItemGroup>
 		<PackageReference Include="Asp.Versioning.Http" Version="7.0.1" />
+		<PackageReference Include="Keycloak.AuthServices.Authentication" Version="1.5.2" />
 		<PackageReference Include="LocalStack.Client" Version="1.4.0" />
     <PackageReference Include="LocalStack.Client.Extensions" Version="1.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.9" />
@@ -16,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Goldlight.Database\Goldlight.Database.csproj" />
+    <ProjectReference Include="..\Goldlight.Models\Goldlight.Models.csproj" />
   </ItemGroup>
 
 </Project>
