@@ -23,9 +23,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Postgres", "Postgres", "{CC
 		Postgres\01-CreateDatabase.sql = Postgres\01-CreateDatabase.sql
 		Postgres\02-CreateSchema.sql = Postgres\02-CreateSchema.sql
 		Postgres\03-AddTables.sql = Postgres\03-AddTables.sql
+		Postgres\04-dml.sql = Postgres\04-dml.sql
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Goldlight.Models", "Goldlight.Models\Goldlight.Models.csproj", "{40166253-312B-4CDF-836C-F9001CF0D920}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Goldlight.Models", "Goldlight.Models\Goldlight.Models.csproj", "{40166253-312B-4CDF-836C-F9001CF0D920}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

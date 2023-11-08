@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Text.Json;
 using Asp.Versioning;
 using Asp.Versioning.Builder;
@@ -6,6 +7,7 @@ using Goldlight.Database.DatabaseOperations;
 using Goldlight.Database.Exceptions;
 using Goldlight.Database.Models.v1;
 using Goldlight.Models;
+using Goldlight.VirtualServer.Extensions;
 using Goldlight.VirtualServer.Models;
 using Goldlight.VirtualServer.Models.v1;
 using Goldlight.VirtualServer.VirtualRequest;
@@ -49,9 +51,11 @@ builder.Services.AddKeycloakAuthentication(builder.Configuration);
 builder.Services.AddAuthorization();
 
 WebApplication app = builder.Build();
+var migration = app.Services.GetRequiredService<DatabaseMigrationDataAccess>();
+await migration.MigrateDatabaseAsync();
+
 app.UseAuthentication().UseAuthorization();
 
-ApiVersionSet organizations = app.NewApiVersionSet("Organizations").Build();
 ApiVersionSet projects = app.NewApiVersionSet("Projects").Build();
 
 if (app.Environment.IsDevelopment())
@@ -64,6 +68,8 @@ app.UseHttpsRedirection();
 app.UseCors("AllAllowed");
 
 app.UseMiddleware<VirtualRequestHandler>();
+
+app.RegisterOrganizationEndpoints(version1);
 
 app.MapPost("/api/project", async (ProjectDataAccess dataAccess, Project project) =>
 {
@@ -95,68 +101,5 @@ app.MapDelete("/api/project/{id}", async (ProjectDataAccess dataAccess, string i
   return TypedResults.Ok(id);
 }).WithApiVersionSet(projects).HasApiVersion(version1);
 
-app.MapPost("/api/organization",
-  async Task<Results<Created<Organization>, Ok<Organization>, Conflict>> (OrganizationDataAccess dataAccess,
-    Organization organization) =>
-  {
-    try
-    {
-      organization.Id = Guid.NewGuid();
-      organization.ApiKey = Guid.NewGuid().ToString().Replace("-", "");
-      organization.Version = 0;
-      await dataAccess.SaveAsync(organization);
-      if (organization.Version > 0)
-      {
-        return TypedResults.Ok(organization);
-      }
-    }
-    catch (SaveConflictException)
-    {
-      return TypedResults.Conflict();
-    }
-
-    return TypedResults.Created($"/api/organization/{organization.Id}", organization);
-  }).WithApiVersionSet(organizations).HasApiVersion(version1);
-
-app.MapGet("/api/organization/{id}",
-  async Task<Results<Ok<Organization>, NotFound>> (OrganizationDataAccess oda, Guid id) =>
-  {
-    Organization? organization = await oda.GetOrganizationAsync(id);
-    if (organization is null)
-    {
-      return TypedResults.NotFound();
-    }
-
-    return TypedResults.Ok(organization);
-  }).WithApiVersionSet(organizations).HasApiVersion(version1).RequireAuthorization();
-
-app.MapGet("/api/organization/name/{name}",
-  async Task<Results<Ok<Organization>, NotFound>> (OrganizationDataAccess oda, string name) =>
-  {
-    Organization? organization = await oda.GetOrganizationByNameAsync(name);
-    if (organization is null)
-    {
-      return TypedResults.NotFound();
-    }
-
-    return TypedResults.Ok(organization);
-  }).WithApiVersionSet(organizations).HasApiVersion(version1).RequireAuthorization();
-
-app.MapGet("/api/organizations",
-    async (OrganizationDataAccess dataAccess) => { return await dataAccess.GetOrganizationsAsync(); })
-  .WithApiVersionSet(organizations).HasApiVersion(version1);
-
-//app.MapPut("/api/organization", async (OrganizationDataAccess dataAccess, Organization organization) =>
-//{
-//  await dataAccess.SaveAsync(organization.ToTable());
-//  organization.Version++;
-//  return TypedResults.Ok(organization);
-//}).WithApiVersionSet(organizations).HasApiVersion(version1);
-
-//app.MapDelete("/api/organization/{id}", async (OrganizationDataAccess dataAccess, string id) =>
-//{
-//  await dataAccess.DeleteOrganizationAsync(id);
-//  return TypedResults.Ok(id);
-//}).WithApiVersionSet(organizations).HasApiVersion(version1);
 
 app.Run();

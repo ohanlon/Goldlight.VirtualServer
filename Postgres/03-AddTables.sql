@@ -73,7 +73,7 @@ CREATE ROLE sv_user WITH
 GRANT ALL ON TABLE sv."Organization" TO postgres;
 GRANT DELETE, UPDATE, INSERT, SELECT ON TABLE sv."Organization" TO sv_user;
 GRANT ALL ON TABLE sv."Role" TO postgres;
-GRANT DELETE, UPDATE, INSERT, SELECT ON TABLE sv."Organization" TO sv_user;
+GRANT DELETE, UPDATE, INSERT, SELECT ON TABLE sv."Role" TO sv_user;
 GRANT ALL ON TABLE sv."OrganizationUser" TO postgres;
 GRANT DELETE, UPDATE, INSERT, SELECT ON TABLE sv."OrganizationUser" TO sv_user;
 GRANT ALL ON TABLE sv."User" TO postgres;

@@ -18,40 +18,44 @@ public class OrganizationDataAccess
     this.postgresConnection = postgresConnection;
   }
 
-  public virtual async Task<Organization> SaveAsync(Organization organization)
+  public virtual async Task<Organization> SaveAsync(Organization organization, string emailAddress)
   {
     using var connection = postgresConnection.Connection;
-    DynamicParameters dynamicParameters = new DynamicParameters();
+    int affectedRows = 0;
+    DynamicParameters dynamicParameters = new();
     dynamicParameters.Add("p_id", value: organization.Id, dbType: DbType.Guid);
-    dynamicParameters.Add("p_friendlyname", value: organization.FriendlyName, dbType: DbType.String);
+    dynamicParameters.Add("p_friendlyname", value: organization.FriendlyName.ToLowerInvariant(), dbType: DbType.String);
     dynamicParameters.Add("p_name", value: organization.Name, dbType: DbType.String);
     dynamicParameters.Add("p_apikey", value: organization.ApiKey, dbType: DbType.String);
-    dynamicParameters.Add("p_version", value: organization.Version, dbType: DbType.String,
+    dynamicParameters.Add("p_email", value: emailAddress, dbType: DbType.String);
+    dynamicParameters.Add("p_version", value: organization.Version, dbType: DbType.Int64,
       direction: ParameterDirection.InputOutput);
-    dynamicParameters.Add("affected_rows", dbType: DbType.String, direction: ParameterDirection.Output);
-    var results = await connection.ExecuteAsync("glsp_InsertOrganization",
-      new
-      {
-        p_id = organization.Id, p_friendlyname = organization.FriendlyName, p_name = organization.Name,
-        p_apikey = organization.ApiKey, p_version = organization.Version
-      }, commandType: CommandType.StoredProcedure);
-    int output = dynamicParameters.Get<int>("affected_Rows");
-    if (output is 0) throw new SaveConflictException();
+    dynamicParameters.Add("affected_rows", value: affectedRows, dbType: DbType.Int64,
+      direction: ParameterDirection.Output);
+    _ = await connection.ExecuteAsync("sv.\"glsp_InsertOrganization\"",
+      dynamicParameters, commandType: CommandType.StoredProcedure);
+    if (dynamicParameters.Get<int>("affected_rows") == 0)
+    {
+      throw new SaveConflictException();
+    }
+
+    organization.Version = dynamicParameters.Get<long>("p_version");
     return organization;
   }
 
-  public virtual async Task<IEnumerable<Organization>> GetOrganizationsAsync()
+  public virtual async Task<IEnumerable<Organization>> GetOrganizationsAsync(string email)
   {
     using IDbConnection connection = postgresConnection.Connection;
     return await connection.QueryAsync<Organization>(
-      "SELECT id, friendlyname, name, apikey, version FROM sv.\"Organization\"");
+      $"SELECT id, friendlyname, name, apikey, version FROM sv.\"organization_users\" WHERE userid=@email",
+      new { email });
   }
 
   public virtual async Task<Organization?> GetOrganizationAsync(Guid id)
   {
     using IDbConnection connection = postgresConnection.Connection;
     IEnumerable<Organization> organizations = await connection.QueryAsync<Organization>(
-      "SELECT id, friendlyname, name, apikey, version FROM sv.\"Organization\" WHERE id=id",
+      "SELECT id, friendlyname, name, apikey, version FROM sv.\"Organization\" WHERE id=@id",
       new { id = id.ToString() });
     return organizations.FirstOrDefault();
   }
@@ -60,7 +64,7 @@ public class OrganizationDataAccess
   {
     using IDbConnection connection = postgresConnection.Connection;
     IEnumerable<Organization> organizations = await connection.QueryAsync<Organization>(
-      "SELECT id, friendlyname, name, apikey, version FROM sv.\"Organization\" WHERE name=name", new { name });
+      "SELECT id, friendlyname, name, apikey, version FROM sv.\"Organization\" WHERE friendlyname=@name", new { name });
     return organizations.FirstOrDefault();
   }
 

@@ -15,7 +15,8 @@ public class PostgresConnection
     string user = configuration.GetSection("Postgres:user").Value!;
     string password = configuration.GetSection("Postgres:password").Value!;
     string database = configuration.GetSection("Postgres:database").Value!;
-    connectionString = $"User ID={user};Password={password};Host={host};Port={port};Database={database}";
+    connectionString =
+      $"User ID={user};Password={password};Host={host};Port={port};Database={database}";
   }
 
   public virtual IDbConnection Connection => new NpgsqlConnection(connectionString);
