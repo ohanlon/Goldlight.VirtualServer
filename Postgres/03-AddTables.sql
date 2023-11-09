@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS sv."Organization" (
 	"id" uuid NOT NULL UNIQUE,
-	"friendlyname" VARCHAR(120) NOT NULL UNIQUE,
+	"friendlyname" VARCHAR(360) NOT NULL UNIQUE,
 	"name" VARCHAR(120) NOT NULL,
 	"apikey" varchar(32) NOT NULL UNIQUE,
 	"version" bigint NOT NULL DEFAULT '0',
@@ -78,3 +78,67 @@ GRANT ALL ON TABLE sv."OrganizationUser" TO postgres;
 GRANT DELETE, UPDATE, INSERT, SELECT ON TABLE sv."OrganizationUser" TO sv_user;
 GRANT ALL ON TABLE sv."User" TO postgres;
 GRANT DELETE, UPDATE, INSERT, SELECT ON TABLE sv."User" TO sv_user;
+
+CREATE TABLE IF NOT EXISTS sv."Project"
+(
+    id uuid NOT NULL,
+    name character varying(120) NOT NULL,
+    friendlyname character varying(120) NOT NULL,
+    description text,
+    version bigint NOT NULL,
+    PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS sv."OrganizationProjects"
+(
+    organization_id uuid NOT NULL,
+    project_id uuid NOT NULL
+);
+
+
+ALTER TABLE IF EXISTS sv."OrganizationProjects"
+    ADD CONSTRAINT fk_organization_project_org FOREIGN KEY (organization_id)
+    REFERENCES sv."Organization" (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+
+ALTER TABLE IF EXISTS sv."OrganizationProjects"
+    ADD CONSTRAINT fk_organization_project_project FOREIGN KEY (project_id)
+    REFERENCES sv."Project" (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    NOT VALID;
+
+GRANT ALL ON TABLE sv."Project" TO postgres;
+GRANT DELETE, UPDATE, INSERT, SELECT ON TABLE sv."Project" TO sv_user;
+GRANT ALL ON TABLE sv."OrganizationProjects" TO postgres;
+GRANT DELETE, UPDATE, INSERT, SELECT ON TABLE sv."OrganizationProjects" TO sv_user;
+
+CREATE INDEX IF NOT EXISTS "idx-organization-project-project-id"
+    ON sv."OrganizationProjects" USING btree
+    (project_id ASC NULLS LAST)
+    TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS "idx-organization-project-organization-id"
+    ON sv."OrganizationProjects" USING btree
+    (organization_id ASC NULLS LAST)
+    TABLESPACE pg_default;
+
+    
+CREATE INDEX IF NOT EXISTS "idx-project-friendlyname"
+    ON sv."Project" USING btree
+    (friendlyname ASC NULLS LAST)
+    TABLESPACE pg_default;
+
+CREATE INDEX IF NOT EXISTS "idx-project-name"
+    ON sv."Project" USING btree
+    (name ASC NULLS LAST)
+    TABLESPACE pg_default;
+
+    
+CREATE INDEX IF NOT EXISTS "idx-project-friendlyname"
+    ON sv."Project" USING btree
+    (friendlyname ASC NULLS LAST)
+    TABLESPACE pg_default;

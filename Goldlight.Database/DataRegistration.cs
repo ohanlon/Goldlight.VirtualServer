@@ -13,6 +13,7 @@ public static class DataRegistration
     return services.AddTransient<OrganizationDataAccess>().AddAwsService<IAmazonDynamoDB>()
       .AddTransient<IDynamoDBContext, DynamoDBContext>()
       .AddTransient<ProjectDataAccess>()
+      .AddTransient<UserDataAccess>()
       .AddTransient<DatabaseMigrationDataAccess>()
       .AddSingleton<PostgresConnection>();
   }

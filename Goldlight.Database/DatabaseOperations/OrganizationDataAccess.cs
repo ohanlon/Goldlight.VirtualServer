@@ -1,6 +1,4 @@
 ﻿using System.Data;
-using Goldlight.Database.Models.v1;
-using Amazon.DynamoDBv2.DataModel;
 using Dapper;
 using Goldlight.Database.Exceptions;
 using Goldlight.Models;
@@ -9,12 +7,10 @@ namespace Goldlight.Database.DatabaseOperations;
 
 public class OrganizationDataAccess
 {
-  private readonly IDynamoDBContext dynamoDbContext;
   private readonly PostgresConnection postgresConnection;
 
-  public OrganizationDataAccess(IDynamoDBContext dbContext, PostgresConnection postgresConnection)
+  public OrganizationDataAccess(PostgresConnection postgresConnection)
   {
-    dynamoDbContext = dbContext;
     this.postgresConnection = postgresConnection;
   }
 
@@ -32,7 +28,7 @@ public class OrganizationDataAccess
       direction: ParameterDirection.InputOutput);
     dynamicParameters.Add("affected_rows", value: affectedRows, dbType: DbType.Int64,
       direction: ParameterDirection.Output);
-    _ = await connection.ExecuteAsync("sv.\"glsp_InsertOrganization\"",
+    _ = await connection.ExecuteAsync("sv.\"glsp_SaveOrganization\"",
       dynamicParameters, commandType: CommandType.StoredProcedure);
     if (dynamicParameters.Get<int>("affected_rows") == 0)
     {
@@ -68,9 +64,8 @@ public class OrganizationDataAccess
     return organizations.FirstOrDefault();
   }
 
-
-  public virtual async Task DeleteOrganizationAsync(string id)
-  {
-    await dynamoDbContext.DeleteAsync<OrganizationTable>(id);
-  }
+  //public virtual async Task DeleteOrganizationAsync(string id)
+  //{
+  //  await dynamoDbContext.DeleteAsync<OrganizationTable>(id);
+  //}
 }
