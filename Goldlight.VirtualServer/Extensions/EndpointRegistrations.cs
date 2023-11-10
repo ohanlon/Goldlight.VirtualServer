@@ -1,5 +1,4 @@
 ﻿using Asp.Versioning;
-using Asp.Versioning.Builder;
 using Goldlight.Database.DatabaseOperations;
 using Goldlight.Database.Exceptions;
 using Goldlight.Database.Models.v1;
@@ -27,16 +26,16 @@ public static class EndpointRegistrations
   {
     RouteGroupBuilder mapGroup = app.MapGroup("Projects", version, "Projects operations");
 
-    mapGroup.MapPost("/api/project", async (ProjectDataAccess dataAccess, Project project) =>
-    {
-      ExtendedProject extendedProject = new(project)
-      {
-        Id = Guid.NewGuid()
-      };
-      await dataAccess.SaveProjectAsync(extendedProject.ToTable());
-      extendedProject.Version = 0;
-      return TypedResults.Created($"/api/organization/{extendedProject.Id}", extendedProject);
-    });
+    //mapGroup.MapPost("/api/project", async (ProjectDataAccess dataAccess, ProjectTable project) =>
+    //{
+    //  ExtendedProject extendedProject = new(project)
+    //  {
+    //    Id = Guid.NewGuid()
+    //  };
+    //  await dataAccess.SaveProjectAsync(extendedProject.ToTable());
+    //  extendedProject.Version = 0;
+    //  return TypedResults.Created($"/api/organization/{extendedProject.Id}", extendedProject);
+    //});
 
     mapGroup.MapPut("/api/project", async (ProjectDataAccess dataAccess, ExtendedProject project) =>
     {
@@ -66,19 +65,6 @@ public static class EndpointRegistrations
     mapGroup.MapGet("/organization/{id}", GetOrganizationById);
     mapGroup.MapGet("/organization/name/{name}", GetOrganizationByName);
     mapGroup.MapGet("/organizations", GetOrganizations);
-
-    //mapGroup.MapPut("/organization", async (OrganizationDataAccess dataAccess, Organization organization) =>
-    //{
-    //  await dataAccess.SaveAsync(organization.ToTable());
-    //  organization.Version++;
-    //  return TypedResults.Ok(organization);
-    //});
-
-    //mapGroup.MapDelete("/organization/{id}", async (OrganizationDataAccess dataAccess, string id) =>
-    //{
-    //  await dataAccess.DeleteOrganizationAsync(id);
-    //  return TypedResults.Ok(id);
-    //});
   }
 
   private static async Task<Results<Created<Organization>, Ok<Organization>, Conflict>>
@@ -93,17 +79,23 @@ public static class EndpointRegistrations
       ? TypedResults.Ok(organizations)
       : TypedResults.NotFound();
 
-  private static async Task<Results<Ok<Organization>, NotFound>> GetOrganizationById(OrganizationDataAccess oda,
-    Guid id) =>
-    await oda.GetOrganizationAsync(id) is { } organization
-      ? TypedResults.Ok(organization)
-      : TypedResults.NotFound();
+  private static async Task<Results<Ok<Organization>, NotFound, UnauthorizedHttpResult>> GetOrganizationById(
+    OrganizationDataAccess oda,
+    Guid id, HttpContext context) =>
+    await oda.IsUserPresentInOrganization(id, context.EmailAddress())
+      ? TypedResults.Unauthorized()
+      : await oda.GetOrganizationAsync(id) is { } organization
+        ? TypedResults.Ok(organization)
+        : TypedResults.NotFound();
 
-  private static async Task<Results<Ok<Organization>, NotFound>> GetOrganizationByName(OrganizationDataAccess oda,
-    string name) =>
-    await oda.GetOrganizationByNameAsync(name) is { } organization
-      ? TypedResults.Ok(organization)
-      : TypedResults.NotFound();
+  private static async Task<Results<Ok<Organization>, NotFound, UnauthorizedHttpResult>> GetOrganizationByName(
+    OrganizationDataAccess oda,
+    string name, HttpContext context) =>
+    await oda.IsUserPresentInOrganization(name, context.EmailAddress())
+      ? TypedResults.Unauthorized()
+      : await oda.GetOrganizationByNameAsync(name) is { } organization
+        ? TypedResults.Ok(organization)
+        : TypedResults.NotFound();
 
   private static async Task<Organization?> AddOrganization(Organization organization, OrganizationDataAccess dataAccess,
     string emailAddress)

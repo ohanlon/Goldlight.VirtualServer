@@ -60,15 +60,6 @@ CREATE INDEX IF NOT EXISTS "idx-organizationuser-user-id"
     (user_id ASC NULLS LAST)
     TABLESPACE pg_default;
 
-CREATE ROLE sv_user WITH
-    LOGIN
-    NOSUPERUSER
-    NOCREATEDB
-    NOCREATEROLE
-    INHERIT
-    NOREPLICATION
-    CONNECTION LIMIT -1
-    ENCRYPTED PASSWORD 'svpassword';
 
 GRANT ALL ON TABLE sv."Organization" TO postgres;
 GRANT DELETE, UPDATE, INSERT, SELECT ON TABLE sv."Organization" TO sv_user;
@@ -96,20 +87,12 @@ CREATE TABLE IF NOT EXISTS sv."OrganizationProjects"
 );
 
 
-ALTER TABLE IF EXISTS sv."OrganizationProjects"
-    ADD CONSTRAINT fk_organization_project_org FOREIGN KEY (organization_id)
-    REFERENCES sv."Organization" (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
+ALTER TABLE IF EXISTS sv."OrganizationProjects" DROP CONSTRAINT fk_organization_project_org,
+ADD CONSTRAINT fk_organization_project_org FOREIGN KEY (organization_id) REFERENCES sv."Organization" (id)  ON DELETE CASCADE;
 
 
-ALTER TABLE IF EXISTS sv."OrganizationProjects"
-    ADD CONSTRAINT fk_organization_project_project FOREIGN KEY (project_id)
-    REFERENCES sv."Project" (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
+ALTER TABLE IF EXISTS sv."OrganizationProjects" DROP CONSTRAINT fk_organization_project_project,
+ADD CONSTRAINT fk_organization_project_project FOREIGN KEY (project_id) REFERENCES sv."Project" (id) MATCH SIMPLE ON DELETE CASCADE;
 
 GRANT ALL ON TABLE sv."Project" TO postgres;
 GRANT DELETE, UPDATE, INSERT, SELECT ON TABLE sv."Project" TO sv_user;

@@ -47,6 +47,24 @@ public class OrganizationDataAccess
       new { email });
   }
 
+  public virtual async Task<bool> IsUserPresentInOrganization(Guid organizationId, string email)
+  {
+    using IDbConnection connection = postgresConnection.Connection;
+    var organizations = await connection.QueryAsync<Organization>(
+      $"SELECT id, friendlyname, name, apikey, version FROM sv.\"organization_users\" WHERE id=@id AND userid=@email",
+      new { organizationId, email });
+    return !organizations.Any();
+  }
+
+  public virtual async Task<bool> IsUserPresentInOrganization(string friendlyName, string email)
+  {
+    using IDbConnection connection = postgresConnection.Connection;
+    var organizations = await connection.QueryAsync<Organization>(
+      $"SELECT id, friendlyname, name, apikey, version FROM sv.\"organization_users\" WHERE friendlyname=@friendlyName AND userid=@email",
+      new { friendlyName, email });
+    return !organizations.Any();
+  }
+
   public virtual async Task<Organization?> GetOrganizationAsync(Guid id)
   {
     using IDbConnection connection = postgresConnection.Connection;
@@ -63,9 +81,4 @@ public class OrganizationDataAccess
       "SELECT id, friendlyname, name, apikey, version FROM sv.\"Organization\" WHERE friendlyname=@name", new { name });
     return organizations.FirstOrDefault();
   }
-
-  //public virtual async Task DeleteOrganizationAsync(string id)
-  //{
-  //  await dynamoDbContext.DeleteAsync<OrganizationTable>(id);
-  //}
 }

@@ -6,9 +6,12 @@ namespace Goldlight.Database.DatabaseOperations;
 public class ProjectDataAccess
 {
   private readonly IDynamoDBContext dynamoDbContext;
-  public ProjectDataAccess(IDynamoDBContext dbContext)
+  private readonly PostgresConnection postgresConnection;
+
+  public ProjectDataAccess(IDynamoDBContext dbContext, PostgresConnection postgresConnection)
   {
     dynamoDbContext = dbContext;
+    this.postgresConnection = postgresConnection;
   }
 
   public virtual async Task SaveProjectAsync(ProjectTable project)
@@ -29,6 +32,7 @@ public class ProjectDataAccess
     {
       projects.AddRange(await search.GetNextSetAsync());
     }
+
     return projects;
   }
 
