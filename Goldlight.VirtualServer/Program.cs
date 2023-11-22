@@ -1,11 +1,7 @@
 using Asp.Versioning;
-using Asp.Versioning.Builder;
 using Goldlight.Database;
 using Goldlight.Database.DatabaseOperations;
-using Goldlight.Database.Models.v1;
 using Goldlight.VirtualServer.Extensions;
-using Goldlight.VirtualServer.Models;
-using Goldlight.VirtualServer.Models.v1;
 using Goldlight.VirtualServer.VirtualRequest;
 using Keycloak.AuthServices.Authentication;
 using LocalStack.Client.Extensions;

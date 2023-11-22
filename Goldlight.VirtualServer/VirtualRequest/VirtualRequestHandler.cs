@@ -42,26 +42,26 @@ public class VirtualRequestHandler
 
     // This is where we would match the API Key passed in with the organization
     // using x-goldlight-api-key == organizationDetails.ApiKey
-    var projectDetails = await project.GetProjectsAsync(organizationDetails.Name);
+    var projectDetails = await project.GetProjectsAsync(organizationDetails.Id);
     var projectDetailsList = projectDetails.ToList();
 
-    var projectItem = projectDetailsList.Find(item =>
-      item.Details.FriendlyName.ToLowerInvariant() == apiDetails[1].ToLowerInvariant() &&
-      item.Details.RequestResponsePairs is not null);
-    if (projectItem is null)
-    {
-      await WriteResponse(context,
-        $"** Service Virtualization Warning ** {context.Request.Path.Value + context.Request.QueryString} could not be found",
-        404);
-      return;
-    }
+    //var projectItem = projectDetailsList.Find(item =>
+    //  item.FriendlyName.ToLowerInvariant() == apiDetails[1].ToLowerInvariant() &&
+    //  item.RequestResponsePairs is not null);
+    //if (projectItem is null)
+    //{
+    //  await WriteResponse(context,
+    //    $"** Service Virtualization Warning ** {context.Request.Path.Value + context.Request.QueryString} could not be found",
+    //    404);
+    //  return;
+    //}
 
-    ;
-    int length = $"/{apiDetails[0]}/{apiDetails[1]}".Length;
-    string actualApi = searchPath.Substring(length);
-    await FindRequestResponsePairs(context,
-      projectItem.Details.RequestResponsePairs!.Where(x =>
-        x.Request.Summary.Path.Equals(actualApi, StringComparison.InvariantCultureIgnoreCase)).ToList());
+    //;
+    //int length = $"/{apiDetails[0]}/{apiDetails[1]}".Length;
+    //string actualApi = searchPath.Substring(length);
+    //await FindRequestResponsePairs(context,
+    //  projectItem.Details.RequestResponsePairs!.Where(x =>
+    //    x.Request.Summary.Path.Equals(actualApi, StringComparison.InvariantCultureIgnoreCase)).ToList());
   }
 
   private async Task FindRequestResponsePairs(HttpContext context, List<RequestResponsePairTableFragment> rrpairs)

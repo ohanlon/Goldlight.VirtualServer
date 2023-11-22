@@ -95,3 +95,46 @@ BEGIN
     INSERT INTO sv."OrganizationUser" ("organization_id", "user_id", "role_id") VALUES (p_orgId, userIdentity, roleId);
 END;
 $$;
+
+CREATE OR REPLACE PROCEDURE sv."glsp_SaveProject"(
+  p_id UUID,
+  p_name VARCHAR,
+  p_friendlyname VARCHAR,
+  p_description TEXT,
+  p_organization UUID,
+  p_version INOUT BIGINT,
+  affected_rows OUT INTEGER
+)
+LANGUAGE 'plpgsql'
+AS $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM sv."Project" WHERE id = p_id) THEN
+    UPDATE sv."Project"
+    SET name = p_name, description = p_description
+    WHERE id = p_id AND version = p_version;
+    IF FOUND THEN
+      affected_rows = 1;
+    END IF;
+
+    p_version = p_version + 1;
+  ELSE
+    p_version = 0;
+    INSERT INTO sv."Project"(id, name, friendlyname, description, organization_id, version) VALUES 
+    (p_id, p_name, p_friendlyname, p_description, p_organization, p_version);
+    IF FOUND THEN
+      affected_rows = 1;
+    END IF;
+  END IF;
+END;
+$$;
+
+CREATE TYPE sv.header_info AS
+(
+	id uuid,
+	key character varying(120),
+	value character varying(120)
+);
+
+ALTER TYPE sv.header_info
+    OWNER TO postgres;
+
