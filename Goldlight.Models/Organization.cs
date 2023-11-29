@@ -6,7 +6,7 @@ namespace Goldlight.Models;
 [DataContract]
 public class Organization
 {
-  [DataMember(Name = "id")] public Guid Id { get; set; } = Guid.Empty;
+  [DataMember(Name = "id")] public Guid Id { get; set; } = Guid.NewGuid();
 
   [DataMember(Name = "name"), MaxLength(120), Required]
   public string Name { get; set; } = null!;
@@ -16,5 +16,6 @@ public class Organization
 
   [DataMember(Name = "version")] public long Version { get; set; }
 
-  [DataMember(Name = "api-key")] public string ApiKey { get; set; }
+  [DataMember(Name = "api-key"), MaxLength(32)]
+  public string ApiKey { get; set; }
 }

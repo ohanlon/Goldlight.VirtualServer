@@ -1,0 +1,57 @@
+﻿using Goldlight.ExceptionManagement;
+
+namespace Goldlight.VirtualServer.Middleware;
+
+public class ExceptionHandlingMiddleware
+{
+  private readonly RequestDelegate next;
+
+  public ExceptionHandlingMiddleware(RequestDelegate next)
+  {
+    this.next = next;
+  }
+
+  // ReSharper disable once UnusedMember.Global
+  public async Task InvokeAsync(HttpContext httpContext)
+  {
+    try
+    {
+      await next(httpContext);
+    }
+    catch (Exception ex)
+    {
+      await HandleException(ex, httpContext);
+    }
+  }
+
+  private async Task HandleException(Exception ex, HttpContext httpContext)
+  {
+    switch (ex)
+    {
+      case UserNotMemberOfOrganizationException:
+        await WriteResponse(httpContext, 401, "The user it not present in the organization");
+        break;
+      case SaveConflictException:
+        await WriteResponse(httpContext, 409, "There was a conflict saving this record.");
+        break;
+      case ForbiddenException:
+        await WriteResponse(httpContext, 403, "Forbidden");
+        break;
+      case InvalidOperationException:
+        await WriteResponse(httpContext, 400, "Invalid Operation");
+        break;
+      case ArgumentException:
+        await httpContext.Response.WriteAsync("Invalid argument");
+        break;
+      default:
+        await httpContext.Response.WriteAsync("Unknown error");
+        break;
+    }
+  }
+
+  private async Task WriteResponse(HttpContext context, int statusCode, string message)
+  {
+    context.Response.StatusCode = statusCode;
+    await context.Response.WriteAsJsonAsync(new HttpResponseModel(message, statusCode));
+  }
+}

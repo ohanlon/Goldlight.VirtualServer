@@ -228,6 +228,7 @@ CREATE TABLE IF NOT EXISTS sv."RequestResponse"
     name character varying(120) COLLATE pg_catalog."default" NOT NULL,
     description character varying(500) COLLATE pg_catalog."default" NOT NULL,
     project_id uuid NOT NULL,
+    version bigint NOT NULL,
     CONSTRAINT "RequestResponse_pkey" PRIMARY KEY (id),
     CONSTRAINT fk_rrpair_project_id FOREIGN KEY (project_id)
         REFERENCES sv."Project" (id) MATCH SIMPLE
@@ -271,7 +272,7 @@ CREATE INDEX IF NOT EXISTS "idx-requestresponse-project"
 CREATE TABLE IF NOT EXISTS sv."Request"
 (
     id uuid NOT NULL,
-    content json,
+    content TEXT,
     requestresponse_id uuid NOT NULL,
     CONSTRAINT request_pkey PRIMARY KEY (id),
     CONSTRAINT fk_requestresponse_request_id FOREIGN KEY (requestresponse_id)
@@ -389,7 +390,7 @@ CREATE INDEX IF NOT EXISTS "idx-requestsummary-request"
 CREATE TABLE IF NOT EXISTS sv."Response"
 (
     id uuid NOT NULL,
-    content json,
+    content TEXT,
     requestresponse_id uuid NOT NULL,
     CONSTRAINT response_pkey PRIMARY KEY (id),
     CONSTRAINT fk_requestresponse_response_id FOREIGN KEY (requestresponse_id)

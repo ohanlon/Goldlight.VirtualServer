@@ -1,9 +1,10 @@
 ﻿using Asp.Versioning;
 using Goldlight.Database.DatabaseOperations;
+using Goldlight.ExceptionManagement;
 
 namespace Goldlight.VirtualServer.Extensions;
 
-public static class UserRegistrations
+public static class UserExtensions
 {
   public static void RegisterUserEndpoints(this WebApplication app, ApiVersion version)
   {
@@ -14,5 +15,16 @@ public static class UserRegistrations
       await dataAccess.AddUser(context.EmailAddress());
       return TypedResults.Ok();
     });
+  }
+
+  public static async Task CheckUserCanEdit(this UserDataAccess userDataAccess, Guid projectId, string emailAddress)
+  {
+    string? role = await userDataAccess.UserRoleForProject(emailAddress, projectId);
+    if (role is not null && role is "PRIMARY OWNER" or "OWNER" or "EDITOR")
+    {
+      return;
+    }
+
+    throw new ForbiddenException();
   }
 }

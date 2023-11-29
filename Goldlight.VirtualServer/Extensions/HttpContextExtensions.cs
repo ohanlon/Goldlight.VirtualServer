@@ -1,6 +1,6 @@
 ﻿using System.Security.Claims;
 
-namespace Goldlight.VirtualServer;
+namespace Goldlight.VirtualServer.Extensions;
 
 public static class HttpContextExtensions
 {

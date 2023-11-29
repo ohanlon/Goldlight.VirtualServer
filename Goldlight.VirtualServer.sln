@@ -28,6 +28,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Postgres", "Postgres", "{CC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Goldlight.Models", "Goldlight.Models\Goldlight.Models.csproj", "{40166253-312B-4CDF-836C-F9001CF0D920}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Goldlight.ExceptionManagement", "Goldlight.ExceptionManagement\Goldlight.ExceptionManagement.csproj", "{2DBD33D3-1942-4120-AF64-49D28530F631}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,10 @@ Global
 		{40166253-312B-4CDF-836C-F9001CF0D920}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40166253-312B-4CDF-836C-F9001CF0D920}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40166253-312B-4CDF-836C-F9001CF0D920}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DBD33D3-1942-4120-AF64-49D28530F631}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DBD33D3-1942-4120-AF64-49D28530F631}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DBD33D3-1942-4120-AF64-49D28530F631}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DBD33D3-1942-4120-AF64-49D28530F631}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

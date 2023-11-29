@@ -12,6 +12,22 @@ public class UserDataAccess : BaseDataAccess
   {
     DynamicParameters dynamicParameters = new();
     dynamicParameters.Add("p_email", emailAddress);
-    _ = await ExecuteStoredProcedureAsync("sv.\"\"", dynamicParameters);
+    _ = await ExecuteStoredProcedureAsync("sv.\"glsp_AddUser\"", dynamicParameters);
+  }
+
+  public async Task<string?> UserRoleForProject(string emailAddress, Guid project)
+  {
+    try
+    {
+      var rolename = await Connection.QueryFirstAsync<string>(
+        "SELECT rolename FROM sv.\"organization_users\" WHERE userid=@emailAddress AND project=@project",
+        new { emailAddress, project });
+      return rolename;
+    }
+    catch (Exception a)
+    {
+      Console.WriteLine(a);
+      throw;
+    }
   }
 }

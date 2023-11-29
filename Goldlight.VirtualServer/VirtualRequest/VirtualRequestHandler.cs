@@ -8,13 +8,14 @@ namespace Goldlight.VirtualServer.VirtualRequest;
 public class VirtualRequestHandler
 {
   private readonly RequestDelegate next;
-  private const string X_API_KEY = "x-goldlight-api-key";
+  private const string XApiKey = "x-goldlight-api-key";
 
   public VirtualRequestHandler(RequestDelegate next)
   {
     this.next = next;
   }
 
+  // ReSharper disable once UnusedMember.Global
   public async Task InvokeAsync(HttpContext context, OrganizationDataAccess organization, ProjectDataAccess project)
   {
     if (context.Request.Path.Value!.StartsWith("/api/"))
@@ -153,7 +154,7 @@ public class VirtualRequestHandler
   {
     foreach (var header in request.Headers)
     {
-      if (header.Key.Equals(X_API_KEY, StringComparison.InvariantCultureIgnoreCase))
+      if (header.Key.Equals(XApiKey, StringComparison.InvariantCultureIgnoreCase))
       {
         continue;
       }

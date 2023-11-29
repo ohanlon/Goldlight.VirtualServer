@@ -1,4 +1,4 @@
-﻿namespace Goldlight.Database.Exceptions;
+﻿namespace Goldlight.ExceptionManagement;
 
 public class SaveConflictException : Exception
 {

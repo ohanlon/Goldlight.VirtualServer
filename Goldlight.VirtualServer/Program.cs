@@ -2,6 +2,7 @@ using Asp.Versioning;
 using Goldlight.Database;
 using Goldlight.Database.DatabaseOperations;
 using Goldlight.VirtualServer.Extensions;
+using Goldlight.VirtualServer.Middleware;
 using Goldlight.VirtualServer.VirtualRequest;
 using Keycloak.AuthServices.Authentication;
 using LocalStack.Client.Extensions;
@@ -57,6 +58,7 @@ app.UseHttpsRedirection();
 app.UseCors("AllAllowed");
 
 app.UseMiddleware<VirtualRequestHandler>();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.RegisterOrganizationEndpoints(version1);
 app.RegisterProjectEndpoints(version1);

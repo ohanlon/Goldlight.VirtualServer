@@ -1,11 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
 
-namespace Goldlight.VirtualServer.Models.v1.RequestResponse;
+namespace Goldlight.Models.RequestResponse;
 
 [DataContract]
 public class Response
 {
+  [DataMember(Name = "responseid")] public Guid Id { get; set; } = Guid.NewGuid();
+
   [Required, DataMember(Name = "summary")]
   public HttpResponseSummary Summary { get; set; } = null!;
 

@@ -8,7 +8,7 @@ namespace Goldlight.Models;
 public class Project
 {
   [Column("id"), DataMember(Name = "id")]
-  public Guid Id { get; set; } = Guid.Empty;
+  public Guid Id { get; set; } = Guid.NewGuid();
 
   [Required, Column("organization_id"), DataMember(Name = "organization")]
   public Guid Organization { get; set; } = Guid.Empty;

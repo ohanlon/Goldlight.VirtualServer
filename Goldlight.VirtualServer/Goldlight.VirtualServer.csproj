@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Goldlight.Database\Goldlight.Database.csproj" />
+    <ProjectReference Include="..\Goldlight.ExceptionManagement\Goldlight.ExceptionManagement.csproj" />
     <ProjectReference Include="..\Goldlight.Models\Goldlight.Models.csproj" />
   </ItemGroup>
 

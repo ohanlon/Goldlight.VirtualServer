@@ -1,6 +1,6 @@
 ﻿using System.Data;
 using Dapper;
-using Goldlight.Database.Exceptions;
+using Goldlight.ExceptionManagement;
 using Goldlight.Models;
 
 namespace Goldlight.Database.DatabaseOperations;
@@ -35,22 +35,28 @@ public class OrganizationDataAccess : BaseDataAccess
       new { email });
   }
 
-  public virtual async Task<bool> IsUserPresentInOrganization(Guid organizationId, string email)
+  public virtual async Task ValidateUserIsPresentInOrganization(Guid organizationId, string email)
   {
     using IDbConnection connection = Connection;
     var organizations = await connection.QueryAsync<Organization>(
       $"SELECT id, friendlyname, name, apikey, version FROM sv.\"organization_users\" WHERE id=@id AND userid=@email",
       new { organizationId, email });
-    return !organizations.Any();
+    if (!organizations.Any())
+    {
+      throw new UserNotMemberOfOrganizationException();
+    }
   }
 
-  public virtual async Task<bool> IsUserPresentInOrganization(string friendlyName, string email)
+  public virtual async Task ValidateUserIsPresentInOrganization(string friendlyName, string email)
   {
     using IDbConnection connection = Connection;
     var organizations = await connection.QueryAsync<Organization>(
       $"SELECT id, friendlyname, name, apikey, version FROM sv.\"organization_users\" WHERE friendlyname=@friendlyName AND userid=@email",
       new { friendlyName, email });
-    return !organizations.Any();
+    if (!organizations.Any())
+    {
+      throw new UserNotMemberOfOrganizationException();
+    }
   }
 
   public virtual async Task<Organization?> GetOrganizationAsync(Guid id)
