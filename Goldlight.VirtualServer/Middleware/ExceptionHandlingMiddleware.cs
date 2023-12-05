@@ -41,10 +41,10 @@ public class ExceptionHandlingMiddleware
         await WriteResponse(httpContext, 400, "Invalid Operation");
         break;
       case ArgumentException:
-        await httpContext.Response.WriteAsync("Invalid argument");
+        await WriteResponse(httpContext, 400, "Invalid Argument");
         break;
       default:
-        await httpContext.Response.WriteAsync("Unknown error");
+        await WriteResponse(httpContext, 500, "Unknown Error");
         break;
     }
   }

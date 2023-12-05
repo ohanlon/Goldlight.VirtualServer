@@ -1,6 +1,6 @@
-﻿using Amazon.DynamoDBv2.Model;
-using Asp.Versioning;
+﻿using Asp.Versioning;
 using Goldlight.Database.DatabaseOperations;
+using Goldlight.ExceptionManagement;
 using Goldlight.Models;
 using Goldlight.Models.RequestResponse;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -50,7 +50,22 @@ public static class ProjectExtensions
       });
 
     mapGroup.MapGet("/{organization}/projects/",
-      async (ProjectDataAccess dataAccess, Guid organization) => await dataAccess.GetProjectsAsync(organization));
+      async (ProjectDataAccess dataAccess, Guid organization, HttpContext context, UserDataAccess userDataAccess) =>
+      {
+        await userDataAccess.CheckUserHasAccess(context.EmailAddress(), organization);
+        var result = await dataAccess.GetProjectsAsync(organization);
+        return TypedResults.Ok(result);
+      });
+
+    mapGroup.MapGet("/{organization}/project/{id}/pairs",
+      async (ProjectDataAccess dataAccess, Guid organization, Guid id, HttpContext context,
+        UserDataAccess userDataAccess) =>
+      {
+        await userDataAccess.CheckUserHasAccess(context.EmailAddress(), organization);
+        var rrpairs = await dataAccess.GetAll(id);
+        return TypedResults.Ok(rrpairs);
+      }
+    );
 
     mapGroup.MapDelete("/project/{id}", async (ProjectDataAccess dataAccess, Guid id) =>
     {

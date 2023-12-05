@@ -15,6 +15,6 @@ public class HttpRequestSummary
   [Required, DataMember(Name = "path"), MinLength(1), MaxLength(120)]
   public string? Path { get; set; }
 
-  [DataMember(Name = "protocol"), MinLength(1), MaxLength(64)]
+  [DataMember(Name = "requestprotocol"), MinLength(1), MaxLength(64)]
   public string? Protocol { get; set; }
 }

@@ -6,14 +6,12 @@ namespace Goldlight.Database.DatabaseOperations;
 
 public abstract class BaseDataAccess
 {
-  private readonly PostgresConnection postgresConnection;
-
   protected BaseDataAccess(PostgresConnection postgresConnection)
   {
-    this.postgresConnection = postgresConnection;
+    Connection = postgresConnection.Connection;
   }
 
-  protected IDbConnection Connection => postgresConnection.Connection;
+  protected IDbConnection Connection { get; }
 
   protected async Task<int> ExecuteCommandAsync(string sql, object parameters, Action? preCommit = null) =>
     await ExecuteAsync(sql, parameters, preCommit, CommandType.Text).ConfigureAwait(false);

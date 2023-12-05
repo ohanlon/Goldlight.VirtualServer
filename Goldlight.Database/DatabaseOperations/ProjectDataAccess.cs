@@ -1,6 +1,8 @@
 ﻿using Dapper;
 using Goldlight.Models;
 using System.Data;
+using System.Diagnostics;
+using System.Xml;
 using Goldlight.ExceptionManagement;
 using Goldlight.Models.RequestResponse;
 using Npgsql;
@@ -21,6 +23,34 @@ public class ProjectDataAccess : BaseDataAccess
     SetTypeMap(typeof(Request));
     SetTypeMap(typeof(RequestResponsePair));
     SetTypeMap(typeof(Response));
+  }
+
+  public virtual async Task<List<RequestResponsePair>> GetAll(Guid projectId)
+  {
+    List<RequestResponsePair> pairs = new();
+    string sql =
+      "SELECT * FROM sv.request_response WHERE projectId = @projectId";
+    IEnumerable<Tuple<RequestResponsePair, Request, Response, HttpRequestSummary, HttpResponseSummary>> results =
+      await Connection
+        .QueryAsync<RequestResponsePair, Request, Response, HttpRequestSummary, HttpResponseSummary,
+          Tuple<RequestResponsePair, Request, Response, HttpRequestSummary, HttpResponseSummary>>(sql,
+          (rr, rq, rs, rqs, rps) => Tuple.Create(rr, rq, rs, rqs, rps),
+          new { projectId },
+          splitOn: "id,requestid,responseid,requestsummaryid,responsesummaryid");
+    List<Tuple<RequestResponsePair, Request, Response, HttpRequestSummary, HttpResponseSummary>> resultsTuple =
+      results.ToList();
+    if (!resultsTuple.Any()) return pairs;
+    foreach ((RequestResponsePair rrpair, Request request, Response response, HttpRequestSummary requestSummary,
+               HttpResponseSummary responseSummary) in resultsTuple)
+    {
+      rrpair.Request = request;
+      rrpair.Response = response;
+      rrpair.Request.Summary = requestSummary;
+      rrpair.Response.Summary = responseSummary;
+      pairs.Add(rrpair);
+    }
+
+    return pairs;
   }
 
   public virtual async Task SaveProjectAsync(Project project)
@@ -72,22 +102,45 @@ public class ProjectDataAccess : BaseDataAccess
       direction: ParameterDirection.InputOutput);
     dynamicParameters.Add("affected_rows", value: 0, dbType: DbType.Int64,
       direction: ParameterDirection.Output);
-    try
-    {
-      _ = await ExecuteStoredProcedureAsync("sv.\"glsp_SaveRRPair\"",
-        dynamicParameters, () =>
+    _ = await ExecuteStoredProcedureAsync("sv.\"glsp_SaveRRPair\"",
+      dynamicParameters, () =>
+      {
+        if (dynamicParameters.Get<int>("affected_rows") == 0)
         {
-          if (dynamicParameters.Get<int>("affected_rows") == 0)
-          {
-            throw new SaveConflictException();
-          }
-        });
-    }
-    catch (Exception e)
+          throw new SaveConflictException();
+        }
+      });
+
+    await SaveHeaders(pair.Request.Headers, "RequestHeader", "request", pair.Request.Id);
+    await SaveHeaders(pair.Response.Headers, "ResponseHeader", "response", pair.Response.Id);
+  }
+
+  private async Task SaveHeaders(HttpHeader[]? headers, string table, string reference, Guid foreignKey)
+  {
+    _ = await ExecuteCommandAsync($"DELETE FROM sv.\"{table}\" WHERE {reference}_id = @foreignKey",
+      new { foreignKey });
+    if (headers is null || headers.Length == 0)
     {
-      Console.WriteLine(e);
-      throw;
+      return;
     }
+
+    foreach (HttpHeader header in headers)
+    {
+      await InsertHeader(header, table, reference, foreignKey);
+    }
+  }
+
+  private async Task InsertHeader(HttpHeader header, string table, string reference, Guid foreignKey)
+  {
+    _ = await ExecuteCommandAsync(
+      $"INSERT INTO sv.\"{table}\"(id, key, value, {reference}_id) VALUES (@id, @name, @value, @foreignKey)",
+      new
+      {
+        id = header.Id,
+        name = header.Name,
+        value = header.Value,
+        foreignKey
+      });
   }
 
   public virtual async Task<IEnumerable<Project>> GetProjectsAsync(Guid organizationId)
@@ -101,22 +154,4 @@ public class ProjectDataAccess : BaseDataAccess
 
   public virtual async Task DeleteProjectAsync(Guid id) =>
     _ = await ExecuteCommandAsync("DELETE FROM sv.\"Project\" WHERE id = @id", new { id });
-}
-
-public class JsonParameter : ICustomQueryParameter
-{
-  private readonly string _value;
-
-  public JsonParameter(string value)
-  {
-    _value = value;
-  }
-
-  public void AddParameter(IDbCommand command, string name)
-  {
-    var parameter = new NpgsqlParameter(name, NpgsqlDbType.Json);
-    parameter.Value = _value;
-
-    command.Parameters.Add(parameter);
-  }
 }

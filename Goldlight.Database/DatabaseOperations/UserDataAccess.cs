@@ -15,19 +15,19 @@ public class UserDataAccess : BaseDataAccess
     _ = await ExecuteStoredProcedureAsync("sv.\"glsp_AddUser\"", dynamicParameters);
   }
 
+  public async Task<bool> UserInOrganization(string emailAddress, Guid organization)
+  {
+    var count = await Connection.QueryFirstAsync<int>(
+      "SELECT COUNT(1) FROM sv.\"organization_users\" WHERE userid=@emailAddress AND id=@organization",
+      new { emailAddress, organization });
+    return count > 0;
+  }
+
   public async Task<string?> UserRoleForProject(string emailAddress, Guid project)
   {
-    try
-    {
-      var rolename = await Connection.QueryFirstAsync<string>(
-        "SELECT rolename FROM sv.\"organization_users\" WHERE userid=@emailAddress AND project=@project",
-        new { emailAddress, project });
-      return rolename;
-    }
-    catch (Exception a)
-    {
-      Console.WriteLine(a);
-      throw;
-    }
+    var rolename = await Connection.QueryFirstAsync<string>(
+      "SELECT rolename FROM sv.\"organization_users\" WHERE userid=@emailAddress AND project=@project",
+      new { emailAddress, project });
+    return rolename;
   }
 }

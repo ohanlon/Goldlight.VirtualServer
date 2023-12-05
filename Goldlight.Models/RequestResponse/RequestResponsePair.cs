@@ -7,7 +7,7 @@ namespace Goldlight.Models.RequestResponse;
 public class RequestResponsePair
 {
   [DataMember(Name = "id")] public Guid Id { get; set; } = Guid.NewGuid();
-  [DataMember(Name = "projectId")] public Guid ProjectId { get; set; }
+  [DataMember(Name = "projectid")] public Guid ProjectId { get; set; }
 
   [Required, DataMember(Name = "name"), MinLength(10), MaxLength(120)]
   public string Name { get; set; } = null!;

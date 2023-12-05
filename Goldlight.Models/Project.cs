@@ -10,18 +10,18 @@ public class Project
   [Column("id"), DataMember(Name = "id")]
   public Guid Id { get; set; } = Guid.NewGuid();
 
-  [Required, Column("organization_id"), DataMember(Name = "organization")]
+  [Required, DataMember(Name = "organization_id")]
   public Guid Organization { get; set; } = Guid.Empty;
 
-  [Required, Column("name"), DataMember(Name = "name"), MaxLength(120)]
+  [Required, DataMember(Name = "name"), MaxLength(120)]
   public string Name { get; set; } = null!;
 
-  [Required, Column("friendlyname"), DataMember(Name = "friendlyname"), MaxLength(120)]
+  [Required, DataMember(Name = "friendlyname"), MaxLength(120)]
   public string FriendlyName { get; set; } = null!;
 
-  [Required, Column("description"), DataMember(Name = "description")]
+  [Required, DataMember(Name = "description")]
   public string? Description { get; set; }
 
-  [Column("version"), DataMember(Name = "version")]
+  [Required, DataMember(Name = "version")]
   public long Version { get; set; }
 }

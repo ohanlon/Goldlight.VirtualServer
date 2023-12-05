@@ -1,3 +1,33 @@
+CREATE OR REPLACE VIEW sv.request_response
+ AS
+ SELECT rr.id,
+    rr.name,
+    rr.description,
+    rr.version,
+    rr.project_id AS projectId,
+    rq.id AS requestid,
+    rq.content AS requestContent,
+    rp.id AS responseid,
+    rp.content AS responseContent,
+    rqs.id AS requestsummaryid,
+    rqs.method,
+    rqs.path,
+    rqs.protocol AS requestprotocol,
+    rps.id AS responsesummaryid,
+    rps.protocol AS responseprotocol,
+    rps.status
+   FROM sv."RequestResponse" rr
+     JOIN sv."Request" rq ON rq.requestresponse_id = rr.id
+     JOIN sv."Response" rp ON rp.requestresponse_id = rr.id
+     JOIN sv."RequestSummary" rqs ON rqs.request_id = rq.id
+     JOIN sv."ResponseSummary" rps ON rps.response_id = rp.id;
+
+ALTER TABLE sv.request_response
+    OWNER TO postgres;
+
+GRANT ALL ON TABLE sv.request_response TO postgres;
+GRANT SELECT ON TABLE sv.request_response TO sv_user;
+
 CREATE OR REPLACE VIEW sv.organization_users
  AS
  SELECT org.id,

@@ -27,4 +27,14 @@ public static class UserExtensions
 
     throw new ForbiddenException();
   }
+
+  public static async Task CheckUserHasAccess(this UserDataAccess userDataAccess, string emailAddress,
+    Guid organization)
+  {
+    bool hasAccess = await userDataAccess.UserInOrganization(emailAddress, organization);
+    if (!hasAccess)
+    {
+      throw new ForbiddenException();
+    }
+  }
 }
