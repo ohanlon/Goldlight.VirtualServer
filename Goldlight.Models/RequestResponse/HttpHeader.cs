@@ -8,8 +8,8 @@ public class HttpHeader
 {
   [DataMember(Name = "headerid")] public Guid Id { get; set; } = Guid.NewGuid();
 
-  [Required, DataMember(Name = "name"), MinLength(1), MaxLength(120)]
-  public string Name { get; set; } = "Unset";
+  [Required, DataMember(Name = "key"), MinLength(1), MaxLength(120)]
+  public string Key { get; set; } = "Unset";
 
   [Required, DataMember(Name = "value"), MinLength(1), MaxLength(1024)]
   public string Value { get; set; } = "Unset";

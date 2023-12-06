@@ -2,6 +2,7 @@
 using Goldlight.Models;
 using System.Data;
 using System.Diagnostics;
+using System.Net;
 using System.Xml;
 using Goldlight.ExceptionManagement;
 using Goldlight.Models.RequestResponse;
@@ -47,10 +48,23 @@ public class ProjectDataAccess : BaseDataAccess
       rrpair.Response = response;
       rrpair.Request.Summary = requestSummary;
       rrpair.Response.Summary = responseSummary;
+      await GetHeaders(rrpair);
       pairs.Add(rrpair);
     }
 
     return pairs;
+  }
+
+  private async Task GetHeaders(RequestResponsePair pair)
+  {
+    string requestHeader = "SELECT * FROM sv.\"RequestHeader\" WHERE request_id = @requestId";
+    string responseHeader = "SELECT * FROM sv.\"ResponseHeader\" WHERE response_id = @responseId";
+
+    var request = await Connection.QueryAsync<HttpHeader>(requestHeader, new { requestId = pair.Request.Id });
+    var response =
+      await Connection.QueryAsync<HttpHeader>(responseHeader, new { responseId = pair.Response.Id });
+    pair.Request.Headers = request as HttpHeader[] ?? request.ToArray();
+    pair.Response.Headers = response as HttpHeader[] ?? response.ToArray();
   }
 
   public virtual async Task SaveProjectAsync(Project project)
@@ -137,7 +151,7 @@ public class ProjectDataAccess : BaseDataAccess
       new
       {
         id = header.Id,
-        name = header.Name,
+        name = header.Key,
         value = header.Value,
         foreignKey
       });

@@ -1,6 +1,7 @@
 ﻿using Asp.Versioning;
 using Goldlight.Database.DatabaseOperations;
 using Goldlight.ExceptionManagement;
+using Goldlight.Models;
 
 namespace Goldlight.VirtualServer.Extensions;
 
@@ -17,8 +18,13 @@ public static class UserExtensions
     });
   }
 
-  public static async Task CheckUserCanEdit(this UserDataAccess userDataAccess, Guid projectId, string emailAddress)
+  public static async Task CheckUserCanEdit(this UserDataAccess userDataAccess, Project project, HttpContext context) =>
+    await CheckUserCanEdit(userDataAccess, project.Organization, project.Id, context.EmailAddress());
+
+  public static async Task CheckUserCanEdit(this UserDataAccess userDataAccess, Guid organization, Guid projectId,
+    string emailAddress)
   {
+    await CheckUserHasAccess(userDataAccess, emailAddress, organization);
     string? role = await userDataAccess.UserRoleForProject(emailAddress, projectId);
     if (role is not null && role is "PRIMARY OWNER" or "OWNER" or "EDITOR")
     {

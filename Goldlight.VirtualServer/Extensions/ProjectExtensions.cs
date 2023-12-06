@@ -39,11 +39,11 @@ public static class ProjectExtensions
     mapGroup.MapPost("/project", CreateOrUpdateProject);
     mapGroup.MapPut("/project", CreateOrUpdateProject);
 
-    mapGroup.MapPost("/{projectId}/rrpair",
-      async (ProjectDataAccess dataAccess, UserDataAccess userDataAccess, RequestResponsePair rrpair,
+    mapGroup.MapPost("/{organization}/project/{projectId}/rrpair",
+      async (ProjectDataAccess dataAccess, UserDataAccess userDataAccess, Guid organization, RequestResponsePair rrpair,
         HttpContext context) =>
       {
-        await userDataAccess.CheckUserCanEdit(rrpair.ProjectId, context.EmailAddress());
+        await context.CheckUserCanEdit(userDataAccess, rrpair.ProjectId, organization);
         CheckRequestResponsePair(rrpair);
         await dataAccess.SaveRequestResponsePair(rrpair);
         return TypedResults.Ok(rrpair);
@@ -52,7 +52,7 @@ public static class ProjectExtensions
     mapGroup.MapGet("/{organization}/projects/",
       async (ProjectDataAccess dataAccess, Guid organization, HttpContext context, UserDataAccess userDataAccess) =>
       {
-        await userDataAccess.CheckUserHasAccess(context.EmailAddress(), organization);
+        await context.CheckUserHasAccess(userDataAccess, organization);
         var result = await dataAccess.GetProjectsAsync(organization);
         return TypedResults.Ok(result);
       });
@@ -61,14 +61,16 @@ public static class ProjectExtensions
       async (ProjectDataAccess dataAccess, Guid organization, Guid id, HttpContext context,
         UserDataAccess userDataAccess) =>
       {
-        await userDataAccess.CheckUserHasAccess(context.EmailAddress(), organization);
+        await context.CheckUserHasAccess(userDataAccess, organization);
         var rrpairs = await dataAccess.GetAll(id);
         return TypedResults.Ok(rrpairs);
       }
     );
 
-    mapGroup.MapDelete("/project/{id}", async (ProjectDataAccess dataAccess, Guid id) =>
+    mapGroup.MapDelete("{organization}/project/{id}", async (ProjectDataAccess dataAccess, Guid organization, Guid id,
+      UserDataAccess userDataAccess, HttpContext context) =>
     {
+      await context.CheckUserCanEdit(userDataAccess, organization, id);
       await dataAccess.DeleteProjectAsync(id);
       return TypedResults.Ok(id);
     });
@@ -84,7 +86,7 @@ public static class ProjectExtensions
   private static async Task<Project> SaveProject(HttpContext context, Project project, ProjectDataAccess dataAccess,
     UserDataAccess userDataAccess)
   {
-    await userDataAccess.CheckUserCanEdit(project.Id, context.EmailAddress());
+    await context.CheckUserCanEdit(userDataAccess, project);
     if (project.Id == Guid.Empty)
     {
       project.Id = Guid.NewGuid();
