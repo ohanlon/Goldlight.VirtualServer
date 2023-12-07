@@ -1,14 +1,8 @@
 ﻿using Dapper;
 using Goldlight.Models;
 using System.Data;
-using System.Diagnostics;
-using System.Net;
-using System.Xml;
 using Goldlight.ExceptionManagement;
 using Goldlight.Models.RequestResponse;
-using Npgsql;
-using NpgsqlTypes;
-using static Dapper.SqlMapper;
 
 namespace Goldlight.Database.DatabaseOperations;
 
@@ -26,7 +20,10 @@ public class ProjectDataAccess : BaseDataAccess
     SetTypeMap(typeof(Response));
   }
 
-  public virtual async Task<List<RequestResponsePair>> GetAll(Guid projectId)
+  public virtual async Task DeletePairsAsync(Guid id) =>
+    _ = await ExecuteCommandAsync("DELETE FROM sv.\"RequestResponse\" WHERE id = @id", new { id });
+
+  public virtual async Task<List<RequestResponsePair>> GetAllRequestResponsesForProjectAsync(Guid projectId)
   {
     List<RequestResponsePair> pairs = new();
     string sql =
@@ -55,18 +52,6 @@ public class ProjectDataAccess : BaseDataAccess
     return pairs;
   }
 
-  private async Task GetHeaders(RequestResponsePair pair)
-  {
-    string requestHeader = "SELECT * FROM sv.\"RequestHeader\" WHERE request_id = @requestId";
-    string responseHeader = "SELECT * FROM sv.\"ResponseHeader\" WHERE response_id = @responseId";
-
-    var request = await Connection.QueryAsync<HttpHeader>(requestHeader, new { requestId = pair.Request.Id });
-    var response =
-      await Connection.QueryAsync<HttpHeader>(responseHeader, new { responseId = pair.Response.Id });
-    pair.Request.Headers = request as HttpHeader[] ?? request.ToArray();
-    pair.Response.Headers = response as HttpHeader[] ?? response.ToArray();
-  }
-
   public virtual async Task SaveProjectAsync(Project project)
   {
     DynamicParameters dynamicParameters = new();
@@ -89,7 +74,7 @@ public class ProjectDataAccess : BaseDataAccess
       });
   }
 
-  public virtual async Task SaveRequestResponsePair(RequestResponsePair pair)
+  public virtual async Task SaveRequestResponsePairAsync(RequestResponsePair pair)
   {
     if (pair.Id == Guid.Empty)
     {
@@ -129,6 +114,30 @@ public class ProjectDataAccess : BaseDataAccess
     await SaveHeaders(pair.Response.Headers, "ResponseHeader", "response", pair.Response.Id);
   }
 
+  public virtual async Task<IEnumerable<Project>> GetProjectsAsync(Guid organizationId)
+  {
+    using var connection = Connection;
+    string sql =
+      "SELECT id, name, friendlyname, description, organization_id, version FROM sv.\"Project\" WHERE organization_id = @organizationId";
+    var result = await connection.QueryAsync<Project>(sql, new { organizationId });
+    return result;
+  }
+
+  public virtual async Task DeleteProjectAsync(Guid id) =>
+    _ = await ExecuteCommandAsync("DELETE FROM sv.\"Project\" WHERE id = @id", new { id });
+
+  private async Task GetHeaders(RequestResponsePair pair)
+  {
+    string requestHeader = "SELECT * FROM sv.\"RequestHeader\" WHERE request_id = @requestId";
+    string responseHeader = "SELECT * FROM sv.\"ResponseHeader\" WHERE response_id = @responseId";
+
+    var request = await Connection.QueryAsync<HttpHeader>(requestHeader, new { requestId = pair.Request.Id });
+    var response =
+      await Connection.QueryAsync<HttpHeader>(responseHeader, new { responseId = pair.Response.Id });
+    pair.Request.Headers = request as HttpHeader[] ?? request.ToArray();
+    pair.Response.Headers = response as HttpHeader[] ?? response.ToArray();
+  }
+
   private async Task SaveHeaders(HttpHeader[]? headers, string table, string reference, Guid foreignKey)
   {
     _ = await ExecuteCommandAsync($"DELETE FROM sv.\"{table}\" WHERE {reference}_id = @foreignKey",
@@ -156,16 +165,4 @@ public class ProjectDataAccess : BaseDataAccess
         foreignKey
       });
   }
-
-  public virtual async Task<IEnumerable<Project>> GetProjectsAsync(Guid organizationId)
-  {
-    using var connection = Connection;
-    string sql =
-      "SELECT id, name, friendlyname, description, organization_id, version FROM sv.\"Project\" WHERE organization_id = @organizationId";
-    var result = await connection.QueryAsync<Project>(sql, new { organizationId });
-    return result;
-  }
-
-  public virtual async Task DeleteProjectAsync(Guid id) =>
-    _ = await ExecuteCommandAsync("DELETE FROM sv.\"Project\" WHERE id = @id", new { id });
 }
