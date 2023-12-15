@@ -128,12 +128,13 @@ public class ProjectDataAccess : BaseDataAccess
 
   private async Task GetHeaders(RequestResponsePair pair)
   {
+    using var connection = Connection;
     string requestHeader = "SELECT * FROM sv.\"RequestHeader\" WHERE request_id = @requestId";
     string responseHeader = "SELECT * FROM sv.\"ResponseHeader\" WHERE response_id = @responseId";
 
     var request = await Connection.QueryAsync<HttpHeader>(requestHeader, new { requestId = pair.Request.Id });
     var response =
-      await Connection.QueryAsync<HttpHeader>(responseHeader, new { responseId = pair.Response.Id });
+      await connection.QueryAsync<HttpHeader>(responseHeader, new { responseId = pair.Response.Id });
     pair.Request.Headers = request as HttpHeader[] ?? request.ToArray();
     pair.Response.Headers = response as HttpHeader[] ?? response.ToArray();
   }

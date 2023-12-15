@@ -6,12 +6,14 @@ namespace Goldlight.Database.DatabaseOperations;
 
 public abstract class BaseDataAccess
 {
+  private readonly PostgresConnection connection;
+
   protected BaseDataAccess(PostgresConnection postgresConnection)
   {
-    Connection = postgresConnection.Connection;
+    connection = postgresConnection;
   }
 
-  protected IDbConnection Connection { get; }
+  protected IDbConnection Connection => connection.Connection;
 
   protected async Task<int> ExecuteCommandAsync(string sql, object parameters, Action? preCommit = null) =>
     await ExecuteAsync(sql, parameters, preCommit, CommandType.Text).ConfigureAwait(false);
@@ -41,7 +43,7 @@ public abstract class BaseDataAccess
       transaction.Commit();
       return affected;
     }
-    catch (Exception ex)
+    catch (Exception)
     {
       transaction.Rollback();
       throw;

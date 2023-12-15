@@ -12,9 +12,19 @@ public static class OrganizationExtensions
     RouteGroupBuilder mapGroup = app.MapGroup("Organizations", version, "Organizations operations");
 
     mapGroup.MapPost("/organization", CreateOrganization);
+    mapGroup.MapPost("/organization/{id}/adduser", AddUserToOrganization);
     mapGroup.MapGet("/organization/{id}", GetOrganizationById);
     mapGroup.MapGet("/organization/name/{name}", GetOrganizationByName);
     mapGroup.MapGet("/organizations", GetOrganizations);
+    mapGroup.MapGet("/organization/{id}/members", GetMembersForOrganization);
+  }
+
+  private static async Task AddUserToOrganization(OrganizationDataAccess dataAccess, Guid id,
+    OrganizationMember organization,
+    HttpContext context)
+  {
+    await dataAccess.ValidateCurrentUserIsPresentInOrganization(id, context.EmailAddress());
+    await dataAccess.AddUserToOrganization(id, organization.EmailAddress, organization.Role);
   }
 
   private static async Task<Results<Created<Organization>, Ok<Organization>>>
@@ -22,6 +32,21 @@ public static class OrganizationExtensions
     await SaveOrganization(organization, dataAccess, context.EmailAddress()) is { Version: > 0 } org
       ? TypedResults.Created($"/organization/{org.Id}", org)
       : TypedResults.Ok(organization);
+
+  private static async Task<Results<Ok<OrganizationMember[]>, NotFound>> GetMembersForOrganization(
+    OrganizationDataAccess dataAccess, Guid id, HttpContext context)
+  {
+    await dataAccess.ValidateCurrentUserIsPresentInOrganization(id, context.EmailAddress());
+    var results = await dataAccess.GetMembers(id);
+    OrganizationMember[] organizationMembers = results as OrganizationMember[] ?? results.ToArray();
+    if (!organizationMembers.Any())
+    {
+      return TypedResults.NotFound();
+    }
+
+    return TypedResults.Ok(organizationMembers);
+  }
+
 
   private static async Task<Results<Ok<IEnumerable<Organization>>, NotFound>> GetOrganizations(
     OrganizationDataAccess dataAccess, HttpContext context) =>
@@ -33,7 +58,7 @@ public static class OrganizationExtensions
     OrganizationDataAccess oda,
     Guid id, HttpContext context)
   {
-    await oda.ValidateUserIsPresentInOrganization(id, context.EmailAddress());
+    await oda.ValidateCurrentUserIsPresentInOrganization(id, context.EmailAddress());
     var organization = await oda.GetOrganizationAsync(id);
     if (organization is null)
     {
@@ -47,7 +72,7 @@ public static class OrganizationExtensions
     OrganizationDataAccess oda,
     string name, HttpContext context)
   {
-    await oda.ValidateUserIsPresentInOrganization(name, context.EmailAddress());
+    await oda.ValidateCurrentUserIsPresentInOrganization(name, context.EmailAddress());
     var organization = await oda.GetOrganizationByNameAsync(name);
     if (organization is null)
     {

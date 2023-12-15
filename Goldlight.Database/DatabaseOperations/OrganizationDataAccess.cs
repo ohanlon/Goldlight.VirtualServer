@@ -27,19 +27,45 @@ public class OrganizationDataAccess : BaseDataAccess
     return organization;
   }
 
+  public virtual async Task AddUserToOrganization(Guid organization, string email, string role)
+  {
+    DynamicParameters dynamicParameters = new();
+    dynamicParameters.Add("p_orgid", value: organization, dbType: DbType.Guid);
+    dynamicParameters.Add("p_email", value: email, DbType.AnsiString);
+    dynamicParameters.Add("p_role", value: role.ToUpper(), DbType.AnsiString);
+    dynamicParameters.Add("affected_rows", value: 0, dbType: DbType.Int64,
+      direction: ParameterDirection.Output);
+    _ = await ExecuteStoredProcedureAsync("sv.\"glsp_SaveUserRoles\"", dynamicParameters, () =>
+    {
+      if (dynamicParameters.Get<int>("affected_rows") == 0)
+      {
+        throw new NotFoundException();
+      }
+    });
+  }
+
   public virtual async Task<IEnumerable<Organization>> GetOrganizationsAsync(string email)
   {
-    using IDbConnection connection = Connection;
+    using var connection = Connection;
     return await connection.QueryAsync<Organization>(
-      $"SELECT id, friendlyname, name, apikey, version FROM sv.\"organization_users\" WHERE userid=@email",
+      $"SELECT DISTINCT id, friendlyname, name, apikey, version FROM sv.\"organization_users\" WHERE userid=@email",
       new { email });
   }
 
-  public virtual async Task ValidateUserIsPresentInOrganization(Guid organizationId, string email)
+  public virtual async Task<IEnumerable<OrganizationMember>> GetMembers(Guid organizationId)
   {
-    using IDbConnection connection = Connection;
+    SetTypeMap(typeof(OrganizationMember));
+    using var connection = Connection;
+    return await connection.QueryAsync<OrganizationMember>(
+      "SELECT userid, rolename FROM sv.\"organization_users\" WHERE id=@organizationId",
+      new { organizationId });
+  }
+
+  public virtual async Task ValidateCurrentUserIsPresentInOrganization(Guid organizationId, string email)
+  {
+    using var connection = Connection;
     var organizations = await connection.QueryAsync<Organization>(
-      $"SELECT id, friendlyname, name, apikey, version FROM sv.\"organization_users\" WHERE id=@id AND userid=@email",
+      $"SELECT id, friendlyname, name, apikey, version FROM sv.\"organization_users\" WHERE id=@organizationId AND userid=@email",
       new { organizationId, email });
     if (!organizations.Any())
     {
@@ -47,9 +73,9 @@ public class OrganizationDataAccess : BaseDataAccess
     }
   }
 
-  public virtual async Task ValidateUserIsPresentInOrganization(string friendlyName, string email)
+  public virtual async Task ValidateCurrentUserIsPresentInOrganization(string friendlyName, string email)
   {
-    using IDbConnection connection = Connection;
+    using var connection = Connection;
     var organizations = await connection.QueryAsync<Organization>(
       $"SELECT id, friendlyname, name, apikey, version FROM sv.\"organization_users\" WHERE friendlyname=@friendlyName AND userid=@email",
       new { friendlyName, email });

@@ -28,7 +28,7 @@ internal static class ProjectExtensions
   private static async Task<Ok<Guid>> DeleteProject(ProjectDataAccess dataAccess, Guid organization, Guid id,
     UserDataAccess userDataAccess, HttpContext context)
   {
-    await context.CheckUserCanEdit(userDataAccess, organization, id);
+    await context.CheckUserCanEdit(userDataAccess, organization);
     await dataAccess.DeleteProjectAsync(id);
     return TypedResults.Ok(id);
   }
@@ -36,7 +36,7 @@ internal static class ProjectExtensions
   private static async Task<Ok<Guid>> DeletePairs(ProjectDataAccess dataAccess, Guid organization, Guid id, Guid pairid,
     UserDataAccess userDataAccess, HttpContext context)
   {
-    await context.CheckUserCanEdit(userDataAccess, organization, id);
+    await context.CheckUserCanEdit(userDataAccess, organization);
     await dataAccess.DeletePairsAsync(pairid);
     return TypedResults.Ok(pairid);
   }
@@ -84,7 +84,7 @@ internal static class ProjectExtensions
       RequestResponsePair rrpair,
       HttpContext context)
   {
-    await context.CheckUserCanEdit(userDataAccess, rrpair.ProjectId, organization);
+    await context.CheckUserCanEdit(userDataAccess, organization);
     CheckRequestResponsePair(rrpair);
     await dataAccess.SaveRequestResponsePairAsync(rrpair);
 

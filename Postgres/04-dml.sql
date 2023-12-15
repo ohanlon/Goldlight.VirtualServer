@@ -41,7 +41,7 @@ CREATE OR REPLACE VIEW sv.organization_users
    FROM sv."Organization" org
      JOIN sv."OrganizationUser" ou ON ou.organization_id = org.id
      JOIN sv."Role" role ON role.id = ou.role_id
-	 JOIN sv."Project" proj on proj.organization_id = org.id 
+	 LEFT JOIN sv."Project" proj on proj.organization_id = org.id 
      JOIN sv."User" usr ON usr.id = ou.user_id;
 
 ALTER TABLE sv.organization_users
@@ -80,9 +80,8 @@ BEGIN
         INSERT INTO sv."Organization" (id, friendlyname, name, apikey, version)
         VALUES (p_id, p_friendlyname, p_name, p_apikey, p_version); 
 		    IF FOUND THEN
-			    affected_rows = 1;
+		      CALL sv."glsp_SaveUserRoles"(p_id, p_email, 'PRIMARY OWNER', affected_rows);
 		    END IF;
-		    CALL sv."glsp_SaveUserRoles"(p_id, p_email, 'PRIMARY OWNER');
 
     END IF;
 END;
@@ -120,7 +119,8 @@ $$;
 CREATE OR REPLACE PROCEDURE sv."glsp_SaveUserRoles"(
   p_orgId UUID,
   p_email VARCHAR,
-  p_role VARCHAR
+  p_role VARCHAR,
+  affected_rows OUT INTEGER
 )
 LANGUAGE 'plpgsql'
 AS $$
@@ -130,8 +130,14 @@ DECLARE
 BEGIN
     CALL sv."glsp_AddUser"(p_email);
     SELECT id INTO userIdentity FROM sv."User" where userid = p_email;
-    SELECT id INTO roleId FROM sv."Role" where name = p_role;
-    INSERT INTO sv."OrganizationUser" ("organization_id", "user_id", "role_id") VALUES (p_orgId, userIdentity, roleId);
+    affected_rows = 0;
+    IF FOUND THEN
+      SELECT id INTO roleId FROM sv."Role" where name = p_role;
+      INSERT INTO sv."OrganizationUser" ("organization_id", "user_id", "role_id") VALUES (p_orgId, userIdentity, roleId);
+      IF FOUND THEN
+        affected_rows = 1;
+      END IF;
+    END IF;
 END;
 $$;
 

@@ -19,13 +19,13 @@ public static class UserExtensions
   }
 
   public static async Task CheckUserCanEdit(this UserDataAccess userDataAccess, Project project, HttpContext context) =>
-    await CheckUserCanEdit(userDataAccess, project.Organization, project.Id, context.EmailAddress());
+    await CheckUserCanEdit(userDataAccess, project.Organization, context.EmailAddress());
 
-  public static async Task CheckUserCanEdit(this UserDataAccess userDataAccess, Guid organization, Guid projectId,
+  public static async Task CheckUserCanEdit(this UserDataAccess userDataAccess, Guid organization,
     string emailAddress)
   {
     await CheckUserHasAccess(userDataAccess, emailAddress, organization);
-    string? role = await userDataAccess.UserRoleForProject(emailAddress, projectId);
+    string? role = await userDataAccess.UserRoleForProject(emailAddress, organization);
     if (role is not null && role is "PRIMARY OWNER" or "OWNER" or "EDITOR")
     {
       return;

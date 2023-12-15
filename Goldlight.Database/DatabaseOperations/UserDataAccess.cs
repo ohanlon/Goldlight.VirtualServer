@@ -23,11 +23,11 @@ public class UserDataAccess : BaseDataAccess
     return count > 0;
   }
 
-  public async Task<string?> UserRoleForProject(string emailAddress, Guid project)
+  public async Task<string?> UserRoleForProject(string emailAddress, Guid organization)
   {
     var rolename = await Connection.QueryFirstAsync<string>(
-      "SELECT rolename FROM sv.\"organization_users\" WHERE userid=@emailAddress AND project=@project",
-      new { emailAddress, project });
+      "SELECT rolename FROM sv.\"organization_users\" WHERE userid=@emailAddress AND id=@organization",
+      new { emailAddress, organization });
     return rolename;
   }
 }

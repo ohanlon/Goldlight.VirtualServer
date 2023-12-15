@@ -5,10 +5,12 @@ namespace Goldlight.VirtualServer.Middleware;
 public class ExceptionHandlingMiddleware
 {
   private readonly RequestDelegate next;
+  private readonly ILogger<ExceptionHandlingMiddleware> logger;
 
-  public ExceptionHandlingMiddleware(RequestDelegate next)
+  public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
   {
     this.next = next;
+    this.logger = logger;
   }
 
   // ReSharper disable once UnusedMember.Global
@@ -44,6 +46,7 @@ public class ExceptionHandlingMiddleware
         await WriteResponse(httpContext, 400, "Invalid Argument");
         break;
       default:
+        logger.LogError(ex, "An unknown error was detected");
         await WriteResponse(httpContext, 500, "Unknown Error");
         break;
     }

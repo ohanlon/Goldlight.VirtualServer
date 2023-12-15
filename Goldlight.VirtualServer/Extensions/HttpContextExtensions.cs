@@ -16,7 +16,7 @@ public static class HttpContextExtensions
   public static async Task CheckUserCanEdit(this HttpContext context, UserDataAccess userDataAccess, Project project) =>
     await userDataAccess.CheckUserCanEdit(project, context);
 
-  public static async Task CheckUserCanEdit(this HttpContext context, UserDataAccess userDataAccess, Guid organization,
-    Guid project) =>
-    await userDataAccess.CheckUserCanEdit(organization, project, context.EmailAddress());
+  public static async Task
+    CheckUserCanEdit(this HttpContext context, UserDataAccess userDataAccess, Guid organization) =>
+    await userDataAccess.CheckUserCanEdit(organization, context.EmailAddress());
 }
