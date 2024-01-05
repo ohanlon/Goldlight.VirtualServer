@@ -57,7 +57,7 @@ public class OrganizationDataAccess : BaseDataAccess
     SetTypeMap(typeof(OrganizationMember));
     using var connection = Connection;
     return await connection.QueryAsync<OrganizationMember>(
-      "SELECT userid, rolename FROM sv.\"organization_users\" WHERE id=@organizationId",
+      "SELECT DISTINCT userid, rolename FROM sv.\"organization_users\" WHERE id=@organizationId",
       new { organizationId });
   }
 

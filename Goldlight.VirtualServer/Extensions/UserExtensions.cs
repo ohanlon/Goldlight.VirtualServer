@@ -11,11 +11,23 @@ public static class UserExtensions
   {
     RouteGroupBuilder mapGroup = app.MapGroup("Users", version, "User operations");
 
-    mapGroup.MapPost("/api/user", async (UserDataAccess dataAccess, HttpContext context) =>
+    mapGroup.MapPost("user", async (UserDataAccess dataAccess, HttpContext context) =>
     {
       await dataAccess.AddUser(context.EmailAddress());
       return TypedResults.Ok();
     });
+
+    mapGroup.MapDelete("{organization}/user/{emailAddress}",
+      async (UserDataAccess dataAccess, HttpContext context, Guid organization, string emailAddress) =>
+      {
+        await CheckUserCanEdit(dataAccess, organization, context.EmailAddress());
+        await dataAccess.DeleteUserFromOrganization(emailAddress, organization);
+        return TypedResults.Ok("User deleted");
+      });
+
+    mapGroup.MapGet("{organization}/user/canedit",
+      async (UserDataAccess dataAccess, HttpContext context, Guid organization) =>
+        TypedResults.Ok(await EnsureUserHasEditCapability(dataAccess, organization, context.EmailAddress())));
   }
 
   public static async Task CheckUserCanEdit(this UserDataAccess userDataAccess, Project project, HttpContext context) =>
@@ -24,14 +36,17 @@ public static class UserExtensions
   public static async Task CheckUserCanEdit(this UserDataAccess userDataAccess, Guid organization,
     string emailAddress)
   {
-    await CheckUserHasAccess(userDataAccess, emailAddress, organization);
-    string? role = await userDataAccess.UserRoleForProject(emailAddress, organization);
-    if (role is not null && role is "PRIMARY OWNER" or "OWNER" or "EDITOR")
-    {
-      return;
-    }
+    if (await EnsureUserHasEditCapability(userDataAccess, organization, emailAddress)) return;
 
     throw new ForbiddenException();
+  }
+
+  private static async Task<bool> EnsureUserHasEditCapability(UserDataAccess userDataAccess, Guid organization,
+    string emailAddress)
+  {
+    await CheckUserHasAccess(userDataAccess, emailAddress, organization);
+    string? role = await userDataAccess.UserRoleForOrganization(emailAddress, organization);
+    return role is "PRIMARY OWNER" or "OWNER" or "EDITOR";
   }
 
   public static async Task CheckUserHasAccess(this UserDataAccess userDataAccess, string emailAddress,

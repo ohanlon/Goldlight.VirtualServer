@@ -19,12 +19,14 @@ public static class OrganizationExtensions
     mapGroup.MapGet("/organization/{id}/members", GetMembersForOrganization);
   }
 
-  private static async Task AddUserToOrganization(OrganizationDataAccess dataAccess, Guid id,
+  private static async Task<Created<OrganizationMember>> AddUserToOrganization(OrganizationDataAccess dataAccess,
+    Guid id,
     OrganizationMember organization,
     HttpContext context)
   {
     await dataAccess.ValidateCurrentUserIsPresentInOrganization(id, context.EmailAddress());
     await dataAccess.AddUserToOrganization(id, organization.EmailAddress, organization.Role);
+    return TypedResults.Created($"/organization/{id}", organization);
   }
 
   private static async Task<Results<Created<Organization>, Ok<Organization>>>

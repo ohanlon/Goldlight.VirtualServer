@@ -23,11 +23,18 @@ public class UserDataAccess : BaseDataAccess
     return count > 0;
   }
 
-  public async Task<string?> UserRoleForProject(string emailAddress, Guid organization)
+  public async Task<string?> UserRoleForOrganization(string emailAddress, Guid organization)
   {
     var rolename = await Connection.QueryFirstAsync<string>(
       "SELECT rolename FROM sv.\"organization_users\" WHERE userid=@emailAddress AND id=@organization",
       new { emailAddress, organization });
     return rolename;
+  }
+
+  public async Task DeleteUserFromOrganization(string emailAddress, Guid organization)
+  {
+    await Connection.ExecuteAsync(
+      "DELETE FROM sv.\"OrganizationUser\" WHERE organization_id=@organization AND user_id IN (SELECT id FROM sv.\"User\" WHERE userid=@emailAddress)",
+      new { emailAddress, organization });
   }
 }
